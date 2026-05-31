@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <title>예약 현황판</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #f6f8fa;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+      --primary: #4f46e5;
+      --primary-soft: #e0e7ff;
+      --secondary: #475569;
+      --accent: #0d9488;
+      --accent-soft: #ccfbf1;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Deck Presentation Viewport */
+    .deck-viewport {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+    }
+
+    .deck-container {
+      width: 1280px;
+      height: 720px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.04),
+        0 4px 20px rgba(0, 0, 0, 0.02);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.1s ease-out;
+    }
+
+    .slides-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    /* Minimal Fade Transition Slide Effects */
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      filter: blur(4px);
+      transition: all 0.5s ease-in-out;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      padding: 55px 80px;
+      justify-content: space-between;
+      z-index: 1;
+    }
+
+    .slide.active {
+      opacity: 1;
+      filter: blur(0);
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    /* Headings & Typography */
+    .slide-header {
+      margin-bottom: 20px;
+    }
+
+    .slide-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      letter-spacing: -0.025em;
+    }
+
+    .slide-subtitle {
+      font-size: 0.8rem;
+      color: var(--primary);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 18px;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      letter-spacing: 0.01em;
+    }
+
+    /* Cover Slide Styling */
+    .cover-slide {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0;
+      background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .cover-main {
+      margin: auto;
+      max-width: 750px;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: var(--primary-soft);
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 24px;
+    }
+
+    .cover-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.8rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      color: var(--text-main);
+      letter-spacing: -0.03em;
+    }
+
+    .cover-desc {
+      font-size: 1.15rem;
+      color: var(--text-sub);
+      margin: 0 auto 40px auto;
+      line-height: 1.55;
+      font-weight: 400;
+    }
+
+    /* Minimal Drag Area */
+    .upload-zone {
+      width: 100%;
+      height: 270px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      background: #fafafb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.4s ease-in-out;
+      padding: 30px;
+      position: relative;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--primary);
+      background: #f8fafc;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.03);
+    }
+
+    .upload-icon {
+      font-size: 3.2rem;
+      color: var(--primary);
+      margin-bottom: 16px;
+      z-index: 2;
+    }
+
+    .upload-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      z-index: 2;
+    }
+
+    .upload-subtext {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      z-index: 2;
+    }
+
+    /* Paper Summary Grid */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .summary-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .summary-label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .summary-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Leaderboard Corporate Styles */
+    .ranking-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .ranking-row {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 20px;
+      transition: all 0.3s ease;
+    }
+
+    .ranking-row:hover {
+      border-color: #cbd5e1;
+      transform: translateX(4px);
+    }
+
+    .ranking-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      width: 30px;
+      color: var(--text-sub);
+    }
+
+    .ranking-row:nth-child(1) .ranking-num {
+      color: var(--primary);
+    }
+
+    .ranking-row:nth-child(2) .ranking-num {
+      color: var(--text-sub);
+    }
+
+    .ranking-row:nth-child(3) .ranking-num {
+      color: var(--text-sub);
+    }
+
+    .ranking-name {
+      flex: 1;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding-right: 15px;
+      color: var(--text-main);
+    }
+
+    .ranking-progress-wrapper {
+      width: 40%;
+      margin-right: 25px;
+    }
+
+    .progress-bar-bg {
+      height: 8px;
+      background: #f1f5f9;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 6px;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ranking-percentage {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      width: 60px;
+      text-align: right;
+    }
+
+    /* Hourly Chart Styling */
+    .chart-timeline-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 15px;
+    }
+
+    .timeline-chart-wrapper {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 220px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      width: 100%;
+    }
+
+    .chart-bar-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      height: 100%;
+      justify-content: flex-end;
+      position: relative;
+    }
+
+    .chart-bar-fill {
+      width: 45%;
+      background: #cbd5e1;
+      border-radius: 4px 4px 0 0;
+      height: 0%;
+      transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .chart-bar-column:hover .chart-bar-fill {
+      background: var(--primary);
+    }
+
+    .chart-bar-value {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .chart-bar-column:hover .chart-bar-value {
+      opacity: 1;
+    }
+
+    .chart-bar-label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    /* Time Series Line Chart styling */
+    .trend-timeline-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 220px;
+      width: 100%;
+      position: relative;
+    }
+
+    .trend-fallback-box {
+      margin: auto;
+      text-align: center;
+      padding: 35px;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      max-width: 500px;
+    }
+
+    /* Minimalist Corporate Feedback Grids */
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .feedback-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .feedback-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--primary);
+    }
+
+    .feedback-box:nth-child(2)::before {
+      background: var(--accent);
+    }
+
+    .feedback-box-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feedback-box-title svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke: var(--primary);
+    }
+
+    .feedback-box:nth-child(2) .feedback-box-title svg {
+      stroke: var(--accent);
+    }
+
+    .feedback-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--text-sub);
+    }
+
+    .feedback-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .feedback-bullet {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .feedback-box:nth-child(2) .feedback-bullet {
+      color: var(--accent);
+    }
+
+    /* Deck Controls Customization */
+    .deck-controls {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .nav-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      transform: scale(1.05);
+    }
+
+    .indicator-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background: var(--primary);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    /* Navigation Wheel/Keyboard Tip */
+    .wheel-tip {
+      position: absolute;
+      top: 25px;
+      right: 40px;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      pointer-events: none;
+    }
+
+    /* 3-Way Filter Segment Control Styling */
+    .filter-chip-container {
+      display: flex;
+      gap: 4px;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 6px;
+    }
+
+    .filter-chip {
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 4px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .filter-chip:hover {
+      color: #1e293b;
+    }
+
+    .filter-chip.active {
+      background: #ffffff;
+      color: #1e293b;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="deck-viewport">
+    <div class="deck-container">
+      <div class="wheel-tip">마우스 휠 또는 키보드 방향키로 슬라이드 전환</div>
+
+      <div class="slides-wrapper">
+
+        <!-- Slide 1: Cover -->
+        <div class="slide cover-slide active" id="slide-1">
+          <div class="cover-main">
+            <div class="cover-badge">예약 운영 지표</div>
+            <h1 class="cover-title">예약 현황 대시보드</h1>
+            <p class="cover-desc">여러 날짜의 수집 데이터를 병합하여 매장별 실제 예약 획득량과 비는 시간대를 대조하는 장표</p>
+            <div style="font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
+              아래 방향키 또는 다음 슬라이드를 눌러 시작하세요
+            </div>
+          </div>
+          <div class="slide-footer" style="width: calc(100% - 160px); position: absolute; bottom: 55px;">
+            <span>예약 수집 도구</span>
+            <span>다중 데이터 병합 분석</span>
+          </div>
+        </div>
+
+        <!-- Slide 2: Data Source & Upload -->
+        <div class="slide" id="slide-2">
+          <div class="slide-header">
+            <div class="slide-subtitle">01 / UPLOAD</div>
+            <h2 class="slide-title">예약 수집 파일 업로드</h2>
+          </div>
+          <div class="slide-body" style="flex-direction: column; justify-content: flex-start; gap: 20px; width: 100%;">
+            <div class="upload-zone" id="upload-zone">
+              <div class="upload-icon">↓</div>
+              <div class="upload-text">수집된 reservations.csv 파일(들)을 드래그 앤 드롭 하세요</div>
+              <div class="upload-subtext">여러 날짜의 파일을 드래그하여 한 번에 통합 분석 가능 (다중 선택 지원)</div>
+              <input type="file" id="file-input" accept=".csv" multiple style="display: none;">
+            </div>
+
+            <div class="summary-grid" style="display: none;" id="summary-area">
+              <div class="summary-card">
+                <div class="summary-label">분석 대상 사진관</div>
+                <div class="summary-value" id="val-studios">0</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">비교 분석 기간</div>
+                <div class="summary-value" style="font-size: 1.4rem; padding: 10px 0;" id="val-date">-</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">종합 예약 완료 건수</div>
+                <div class="summary-value" id="val-slots" data-val="0">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>다중 파일 병합 및 기본 개요</span>
+            <span>Slide 2</span>
+          </div>
+        </div>
+
+        <!-- Slide 3: Studio Booking Rate Ranking -->
+        <div class="slide" id="slide-3">
+          <div class="slide-header">
+            <div class="slide-subtitle">02 / LEADERBOARD</div>
+            <h2 class="slide-title">매장별 실제 예약 완료 순위</h2>
+          </div>
+          <div class="slide-body" style="justify-content: flex-start; align-items: flex-start; width: 100%;">
+            <div id="no-data-msg-1" style="margin: auto; color: var(--text-sub); font-size: 1.1rem; opacity: 0.8;">
+              분석 데이터가 존재하지 않습니다. 먼저 2번 장표에서 CSV 파일을 업로드해 주세요.
+            </div>
+            <div class="ranking-container" id="ranking-list" style="display: none;">
+              <!-- Dynamic Ranking Rows -->
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>실질 예약 완료(마감) 절대 횟수 기준 1차 내림차순 정렬 결과</span>
+            <span>Slide 3</span>
+          </div>
+        </div>
+
+        <!-- Slide 4: Peak-Time Hourly Trends -->
+        <div class="slide" id="slide-4">
+          <div class="slide-header" style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+            <div>
+              <div class="slide-subtitle">03 / TIMELINE</div>
+              <h2 class="slide-title">시간대별 예약 집중 분포</h2>
+            </div>
+            <div id="hourly-filter-container" style="display: none;" class="filter-chip-container">
+              <button class="filter-chip active" data-filter="all">전체</button>
+              <button class="filter-chip" data-filter="weekday">주중</button>
+              <button class="filter-chip" data-filter="weekend">주말</button>
+            </div>
+          </div>
+          <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
+            <div id="no-data-msg-2" style="margin: auto; color: var(--text-sub); font-size: 1.1rem; opacity: 0.8;">
+              분석 데이터가 존재하지 않습니다. 먼저 2번 장표에서 CSV 파일을 업로드해 주세요.
+            </div>
+            <div class="chart-timeline-container" id="timeline-chart-area" style="display: none;">
+              <div class="timeline-chart-wrapper" id="timeline-bar-wrapper">
+                <!-- Dynamic Chart Columns -->
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>영업 시간대별 평균 예약 마감(UNAVAILABLE) 누적 통계</span>
+            <span>Slide 4</span>
+          </div>
+        </div>
+
+        <!-- Slide 5: Multi-Day Time Series Trend -->
+        <div class="slide" id="slide-5">
+          <div class="slide-header">
+            <div class="slide-subtitle">04 / TIME SERIES FLOW</div>
+            <h2 class="slide-title">일자별 예약 완료 흐름</h2>
+          </div>
+          <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
+            <div id="no-data-msg-3" class="trend-fallback-box">
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">다중 일자 데이터가
+                감지되지 않았습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">2번 장표에서 여러
+                날짜의 CSV 수집 파일들을 동시에 드래그 앤 드롭하여 업로드하시면 날짜별 예약 완료 추이 변동 차트가 활성화됩니다.</div>
+            </div>
+            <div class="chart-timeline-container" id="trend-chart-area" style="display: none; height: 230px;">
+              <div class="trend-timeline-wrapper" id="trend-bar-wrapper">
+                <!-- Dynamic SVG Time Series Chart -->
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer">
+            <span>기간별 전체 매장 일일 예약 완료 건수의 거시적 추세 추적</span>
+            <span>Slide 5</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Navigation Deck Controls -->
+      <div class="deck-controls">
+        <button class="nav-btn" id="prev-btn">⟵</button>
+        <div class="indicator-dots" id="dots-container"></div>
+        <button class="nav-btn" id="next-btn">⟶</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Responsive Deck Autofit Logic ---
+    const deckContainer = document.querySelector('.deck-container');
+
+    function autoFitDeck() {
+      const baseWidth = 1280;
+      const baseHeight = 720;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      const scaleX = (windowWidth * 0.92) / baseWidth;
+      const scaleY = (windowHeight * 0.92) / baseHeight;
+      const fitScale = Math.min(scaleX, scaleY, 1.05);
+
+      deckContainer.style.transform = `scale(${fitScale})`;
+      deckContainer.style.transformOrigin = 'center center';
+    }
+
+    window.addEventListener('resize', autoFitDeck);
+    autoFitDeck();
+
+    // --- Slide Deck Navigation Logic ---
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('dots-container');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    let currentSlide = 0;
+
+    slides.forEach((slide, index) => {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      if (index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(index));
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = document.querySelectorAll('.dot');
+
+    function updateControls() {
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+      });
+      slides.forEach((slide, index) => {
+        slide.classList.toggle('active', index === currentSlide);
+      });
+    }
+
+    // Trigger animations when the user visually enters the Leaderboard slide
+    function triggerLeaderboardAnimation() {
+      const fills = document.querySelectorAll('#ranking-list .progress-bar-fill');
+      fills.forEach(fill => {
+        const targetWidth = fill.getAttribute('data-width') || '0%';
+        fill.style.width = '0%';
+        fill.offsetHeight; // Force reflow to restart transition beautifully
+        fill.style.width = targetWidth;
+      });
+    }
+
+    // Trigger animations when the user visually enters the Hourly Timeline slide
+    function triggerHourlyChartAnimation() {
+      const fills = document.querySelectorAll('#timeline-bar-wrapper .chart-bar-fill');
+      fills.forEach(fill => {
+        const targetHeight = fill.getAttribute('data-height') || '0%';
+        fill.style.height = '0%';
+        fill.offsetHeight; // Force reflow
+        fill.style.height = targetHeight;
+      });
+    }
+
+    function goToSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      currentSlide = index;
+      updateControls();
+
+      // Trigger animations on active slide entry
+      if (currentSlide === 2) {
+        triggerLeaderboardAnimation();
+      } else if (currentSlide === 3) {
+        triggerHourlyChartAnimation();
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentSlide > 0) goToSlide(currentSlide - 1);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentSlide < slides.length - 1) goToSlide(currentSlide + 1);
+    });
+
+    // Keyboard Arrow Navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        if (currentSlide < slides.length - 1) {
+          goToSlide(currentSlide + 1);
+          e.preventDefault();
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        if (currentSlide > 0) {
+          goToSlide(currentSlide - 1);
+          e.preventDefault();
+        }
+      }
+    });
+
+    // Mouse Wheel Navigation
+    let lastWheelTime = Date.now();
+    document.addEventListener('wheel', (e) => {
+      const now = Date.now();
+      if (now - lastWheelTime < 1000) return;
+
+      if (e.deltaY > 20) {
+        if (currentSlide < slides.length - 1) {
+          goToSlide(currentSlide + 1);
+          lastWheelTime = now;
+        }
+      } else if (e.deltaY < -20) {
+        if (currentSlide > 0) {
+          goToSlide(currentSlide - 1);
+          lastWheelTime = now;
+        }
+      }
+    });
+
+    // --- Dynamic Rolling Value Effect ---
+    function animateValue(obj, start, end, duration, suffix = "") {
+      if (start === end) {
+        obj.textContent = end + suffix;
+        return;
+      }
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentVal = Math.floor(progress * (end - start) + start);
+        obj.textContent = currentVal + suffix;
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    // --- CSV Drag & Drop Parser Logic ---
+    let currentMasterData = [];
+
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const summaryArea = document.getElementById('summary-area');
+    const noData1 = document.getElementById('no-data-msg-1');
+    const noData2 = document.getElementById('no-data-msg-2');
+    const noData3 = document.getElementById('no-data-msg-3');
+
+    const valStudios = document.getElementById('val-studios');
+    const valDate = document.getElementById('val-date');
+    const valSlots = document.getElementById('val-slots');
+
+    const rankingList = document.getElementById('ranking-list');
+    const timelineBarWrapper = document.getElementById('timeline-bar-wrapper');
+    const timelineChartArea = document.getElementById('timeline-chart-area');
+
+    const trendChartArea = document.getElementById('trend-chart-area');
+    const trendBarWrapper = document.getElementById('trend-bar-wrapper');
+    const filterChips = document.querySelectorAll('.filter-chip');
+    const hourlyFilterContainer = document.getElementById('hourly-filter-container');
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+      }, false);
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const files = e.target.files;
+      if (files && files.length > 0) handleFiles(files);
+    });
+
+    async function handleFiles(files) {
+      const csvFiles = Array.from(files).filter(f => f.name.endsWith('.csv'));
+      if (csvFiles.length === 0) {
+        alert('올바른 .csv 예약 현황 파일 형식만 분석이 가능합니다.');
+        return;
+      }
+
+      const readPromises = csvFiles.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            resolve({ name: file.name, text: e.target.result });
+          };
+          reader.readAsText(file);
+        });
+      });
+
+      const results = await Promise.all(readPromises);
+      processMergedData(results);
+    }
+
+    function processMergedData(fileContents) {
+      let masterData = [];
+
+      fileContents.forEach(file => {
+        const lines = file.text.split(/\r?\n/);
+        if (lines.length < 2) return;
+
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+
+          const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
+          if (matches.length < 5) continue;
+
+          const row = {
+            studioName: matches[0].replace(/"/g, '').trim(),
+            resourceId: matches[1].replace(/"/g, '').trim(),
+            date: matches[2].replace(/"/g, '').trim(),
+            time: matches[3].replace(/"/g, '').trim(),
+            status: matches[4].replace(/"/g, '').trim()
+          };
+
+          const isDuplicate = masterData.some(d =>
+            d.studioName === row.studioName &&
+            d.resourceId === row.resourceId &&
+            d.date === row.date &&
+            d.time === row.time &&
+            d.status === row.status
+          );
+
+          if (!isDuplicate) {
+            masterData.push(row);
+          }
+        }
+      });
+
+      if (masterData.length === 0) {
+        alert('파싱 가능한 예약 데이터 행이 존재하지 않습니다.');
+        return;
+      }
+
+      masterData.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+      });
+
+      const studiosSet = new Set(masterData.map(d => d.studioName));
+      const datesSet = Array.from(new Set(masterData.map(d => d.date))).sort();
+
+      const totalSlots = masterData.length;
+      const totalUnavailable = masterData.filter(d => d.status === 'UNAVAILABLE').length;
+
+      const oldStudioVal = parseInt(valStudios.textContent) || 0;
+      const oldSlotVal = parseInt(valSlots.getAttribute('data-val')) || 0;
+
+      animateValue(valStudios, oldStudioVal, studiosSet.size, 800);
+      valSlots.setAttribute('data-val', totalUnavailable);
+      animateValue(valSlots, oldSlotVal, totalUnavailable, 800, `건 / ${totalSlots}슬롯`);
+
+      if (datesSet.length > 1) {
+        valDate.textContent = `${datesSet[0]} ~ ${datesSet[datesSet.length - 1]} (${datesSet.length}일간)`;
+      } else {
+        valDate.textContent = datesSet[0];
+      }
+
+      summaryArea.style.display = 'grid';
+      uploadZone.style.borderStyle = 'solid';
+      uploadZone.style.height = '120px';
+      uploadZone.querySelector('.upload-icon').style.fontSize = '2rem';
+      uploadZone.querySelector('.upload-icon').style.margin = '0';
+      uploadZone.querySelector('.upload-text').textContent = '통합 분석 완료! 추가 CSV 수집 파일을 드래그하여 누적할 수 있습니다';
+      uploadZone.querySelector('.upload-subtext').textContent = `병합 분석 완료 (${fileContents.length}개 파일)`;
+
+      // 2. Booking Results by Studio (Leaderboard based on absolute count)
+      const studioStats = {};
+      studiosSet.forEach(name => {
+        const studioRows = masterData.filter(d => d.studioName === name);
+        const unavailableCount = studioRows.filter(d => d.status === 'UNAVAILABLE').length;
+        const total = studioRows.length;
+        const rate = total > 0 ? Math.round((unavailableCount / total) * 100) : 0;
+
+        studioStats[name] = {
+          name: name,
+          unavailableCount: unavailableCount,
+          total: total,
+          rate: rate
+        };
+      });
+
+      // Sort by absolute unavailableCount desc, then by rate desc
+      const sortedStudios = Object.values(studioStats).sort((a, b) => {
+        if (b.unavailableCount !== a.unavailableCount) {
+          return b.unavailableCount - a.unavailableCount;
+        }
+        return b.rate - a.rate;
+      });
+
+      noData1.style.display = 'none';
+      rankingList.innerHTML = '';
+      rankingList.style.display = 'flex';
+
+      const maxTotalSlots = Math.max(...sortedStudios.map(s => s.total), 1);
+
+      sortedStudios.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.classList.add('ranking-row');
+        const fillPercent = Math.round((item.unavailableCount / maxTotalSlots) * 100);
+        row.innerHTML = `
+          <div class="ranking-num">${index + 1}</div>
+          <div class="ranking-name">${item.name}</div>
+          <div class="ranking-progress-wrapper">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" data-width="${fillPercent}%" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="ranking-percentage" style="width: 140px; font-size: 0.95rem; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px;">
+            <span style="font-weight: 800; color: var(--accent);">${item.unavailableCount}건 완료</span>
+            <span style="font-size: 0.75rem; color: var(--text-sub); font-weight: 500;">총 ${item.total}슬롯 수집</span>
+          </div>
+        `;
+        rankingList.appendChild(row);
+      });
+
+      // 3. Hourly Peak Time distributions (Delegated to modular filter-based renderer)
+      currentMasterData = masterData;
+      noData2.style.display = 'none';
+      timelineChartArea.style.display = 'flex';
+      hourlyFilterContainer.style.display = 'block';
+      renderHourlyChart('all');
+
+      // 4. Time Series Daily Booking Rates (SVG Line chart)
+      if (datesSet.length > 1) {
+        noData3.style.display = 'none';
+        trendBarWrapper.innerHTML = '';
+        trendChartArea.style.display = 'flex';
+
+        const dailyRates = [];
+        datesSet.forEach(date => {
+          const dateRows = masterData.filter(d => d.date === date);
+          const unavailableCount = dateRows.filter(d => d.status === 'UNAVAILABLE').length;
+          dailyRates.push({ date: date, count: unavailableCount });
+        });
+
+        // Dynamic SVG Drawing
+        const svgNS = "http://www.w3.org/2000/svg";
+        const width = 1100;
+        const height = 210;
+        const paddingLeftRight = 50;
+        const paddingTopBottom = 30;
+
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.style.overflow = "visible";
+
+        svg.innerHTML = `
+          <defs>
+            <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        `;
+
+        const chartWidth = width - paddingLeftRight * 2;
+        const chartHeight = height - paddingTopBottom * 2;
+        const pointsCount = dailyRates.length;
+        const stepX = chartWidth / (pointsCount - 1 || 1);
+
+        const maxDailyCount = Math.max(...dailyRates.map(d => d.count), 1);
+
+        const points = dailyRates.map((item, index) => {
+          const x = paddingLeftRight + index * stepX;
+          const y = paddingTopBottom + chartHeight * (1 - item.count / maxDailyCount);
+          return { x, y, date: item.date, count: item.count };
+        });
+
+        // Bezier interpolation
+        let d = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+          const curr = points[i];
+          const next = points[i + 1];
+          const cpX1 = curr.x + stepX / 3;
+          const cpY1 = curr.y;
+          const cpX2 = next.x - stepX / 3;
+          const cpY2 = next.y;
+          d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
+        }
+
+        const dFill = `${d} L ${points[points.length - 1].x} ${height - paddingTopBottom} L ${points[0].x} ${height - paddingTopBottom} Z`;
+
+        const pathFill = document.createElementNS(svgNS, "path");
+        pathFill.setAttribute("d", dFill);
+        pathFill.setAttribute("fill", "url(#chart-glow)");
+        svg.appendChild(pathFill);
+
+        const pathLine = document.createElementNS(svgNS, "path");
+        pathLine.setAttribute("d", d);
+        pathLine.setAttribute("fill", "none");
+        pathLine.setAttribute("stroke", "#4f46e5");
+        pathLine.setAttribute("stroke-width", "4");
+        pathLine.setAttribute("stroke-linecap", "round");
+        pathLine.setAttribute("stroke-linejoin", "round");
+
+        pathLine.style.strokeDasharray = "1200";
+        pathLine.style.strokeDashoffset = "1200";
+        pathLine.style.animation = "draw-chart-path 1.5s forwards ease-in-out";
+        svg.appendChild(pathLine);
+
+        points.forEach((pt) => {
+          const dateParts = pt.date.split('-');
+          const shortLabel = dateParts.length > 2 ? `${dateParts[1]}/${dateParts[2]}` : pt.date;
+
+          const gridLine = document.createElementNS(svgNS, "line");
+          gridLine.setAttribute("x1", pt.x);
+          gridLine.setAttribute("y1", paddingTopBottom);
+          gridLine.setAttribute("x2", pt.x);
+          gridLine.setAttribute("y2", height - paddingTopBottom);
+          gridLine.setAttribute("stroke", "#e2e8f0");
+          gridLine.setAttribute("stroke-dasharray", "4 4");
+          svg.appendChild(gridLine);
+
+          const dotGroup = document.createElementNS(svgNS, "g");
+          dotGroup.style.cursor = "pointer";
+
+          const dotOuter = document.createElementNS(svgNS, "circle");
+          dotOuter.setAttribute("cx", pt.x);
+          dotOuter.setAttribute("cy", pt.y);
+          dotOuter.setAttribute("r", "8");
+          dotOuter.setAttribute("fill", "#4f46e5");
+          dotOuter.setAttribute("opacity", "0");
+          dotOuter.style.transition = "all 0.25s ease";
+          dotGroup.appendChild(dotOuter);
+
+          const dotInner = document.createElementNS(svgNS, "circle");
+          dotInner.setAttribute("cx", pt.x);
+          dotInner.setAttribute("cy", pt.y);
+          dotInner.setAttribute("r", "4.5");
+          dotInner.setAttribute("fill", "#ffffff");
+          dotInner.setAttribute("stroke", "#4f46e5");
+          dotInner.setAttribute("stroke-width", "2.5");
+          dotGroup.appendChild(dotInner);
+
+          const textLabel = document.createElementNS(svgNS, "text");
+          textLabel.setAttribute("x", pt.x);
+          textLabel.setAttribute("y", height - 6);
+          textLabel.setAttribute("text-anchor", "middle");
+          textLabel.setAttribute("fill", "#64748b");
+          textLabel.setAttribute("font-size", "11");
+          textLabel.setAttribute("font-weight", "600");
+          textLabel.textContent = shortLabel;
+          svg.appendChild(textLabel);
+
+          const rateText = document.createElementNS(svgNS, "text");
+          rateText.setAttribute("x", pt.x);
+          rateText.setAttribute("y", pt.y - 14);
+          rateText.setAttribute("text-anchor", "middle");
+          rateText.setAttribute("fill", "#4f46e5");
+          rateText.setAttribute("font-weight", "800");
+          rateText.setAttribute("font-size", "12");
+          rateText.style.opacity = "0";
+          rateText.style.transition = "all 0.25s ease";
+          rateText.textContent = `${pt.count}건 완료`;
+          dotGroup.appendChild(rateText);
+
+          dotGroup.addEventListener("mouseenter", () => {
+            dotOuter.setAttribute("r", "12");
+            dotOuter.setAttribute("opacity", "0.15");
+            rateText.style.opacity = "1";
+            rateText.setAttribute("y", pt.y - 17);
+          });
+
+          dotGroup.addEventListener("mouseleave", () => {
+            dotOuter.setAttribute("r", "8");
+            dotOuter.setAttribute("opacity", "0");
+            rateText.style.opacity = "0";
+            rateText.setAttribute("y", pt.y - 14);
+          });
+
+          svg.appendChild(dotGroup);
+        });
+
+        trendBarWrapper.appendChild(svg);
+      } else {
+        trendChartArea.style.display = 'none';
+        noData3.style.display = 'block';
+      }
+
+      setTimeout(() => {
+        goToSlide(1);
+      }, 500);
+    }
+
+    // Modular Renderer for Slide 4 with simplified day filtering logic
+    function renderHourlyChart(filterValue) {
+      if (!currentMasterData || currentMasterData.length === 0) return;
+
+      const filteredData = currentMasterData.filter(d => {
+        if (filterValue === 'all') return true;
+        const dateObj = new Date(d.date);
+        const day = dateObj.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
+        
+        if (filterValue === 'weekday') return (day >= 1 && day <= 5);
+        if (filterValue === 'weekend') return (day === 0 || day === 6);
+        return true;
+      });
+
+      const hourlyCounts = {};
+      const uniqueTimes = Array.from(new Set(currentMasterData.map(d => d.time))).sort();
+
+      uniqueTimes.forEach(time => {
+        const timeRows = filteredData.filter(d => d.time === time);
+        const unavailableCount = timeRows.filter(d => d.status === 'UNAVAILABLE').length;
+        hourlyCounts[time] = unavailableCount;
+      });
+
+      const maxCount = Math.max(...Object.values(hourlyCounts), 1);
+      timelineBarWrapper.innerHTML = '';
+
+      uniqueTimes.forEach(time => {
+        const count = hourlyCounts[time];
+        const heightPercent = Math.round((count / maxCount) * 100);
+
+        const col = document.createElement('div');
+        col.classList.add('chart-bar-column');
+        col.innerHTML = `
+          <div class="chart-bar-fill" data-height="${heightPercent || 6}%" style="height: 0%">
+            <div class="chart-bar-value">${count}건</div>
+          </div>
+          <div class="chart-bar-label">${time}</div>
+        `;
+        timelineBarWrapper.appendChild(col);
+      });
+    }
+
+    // Bind click event to filter chips
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        renderHourlyChart(e.target.getAttribute('data-filter'));
+      });
+    });
+  </script>
+</body>
+
+</html>

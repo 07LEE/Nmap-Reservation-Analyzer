@@ -1,0 +1,5 @@
+{
+  "targetDays": 1,
+  "outputFormat": "csv",
+  "outputPath": "./data"
+}
