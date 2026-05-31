@@ -360,13 +360,14 @@
       flex-direction: column;
       width: 100%;
       gap: 15px;
+      margin-top: 30px;
     }
 
     .timeline-chart-wrapper {
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      height: 220px;
+      height: 300px;
       border-bottom: 1px solid #e2e8f0;
       padding-bottom: 8px;
       width: 100%;
@@ -631,34 +632,34 @@
 
       <div class="slides-wrapper">
 
-        <!-- Slide 1: Cover -->
+        <!-- Slide 1: Cover & Integrated Upload Zone -->
         <div class="slide cover-slide active" id="slide-1">
-          <div class="cover-main">
-            <div class="cover-badge">예약 운영 지표</div>
-            <h1 class="cover-title">예약 현황 대시보드</h1>
-            <p class="cover-desc">여러 날짜의 수집 데이터를 병합하여 매장별 실제 예약 획득량과 비는 시간대를 대조하는 장표</p>
-            <div style="font-size: 0.85rem; color: var(--text-sub); opacity: 0.8;">
-              아래 방향키 또는 다음 슬라이드를 눌러 시작하세요
-            </div>
-          </div>
-          <div class="slide-footer" style="width: calc(100% - 160px); position: absolute; bottom: 55px;">
-            <span>예약 수집 도구</span>
-            <span>다중 데이터 병합 분석</span>
-          </div>
-        </div>
+          <div class="cover-main" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; gap: 24px; padding-top: 80px;">
+            <h1 class="cover-title" style="margin: 0;">예약 현황 대시보드</h1>
 
-        <!-- Slide 2: Data Source & Upload -->
-        <div class="slide" id="slide-2">
-          <div class="slide-header">
-            <div class="slide-subtitle">01 / UPLOAD</div>
-            <h2 class="slide-title">예약 수집 파일 업로드</h2>
-          </div>
-          <div class="slide-body" style="flex-direction: column; justify-content: flex-start; gap: 20px; width: 100%;">
-            <div class="upload-zone" id="upload-zone">
+            <!-- Integrated drag & drop file upload zone inside cover main -->
+            <div class="upload-zone" id="upload-zone" style="width: 100%; max-width: 800px; height: 160px; margin-top: 20px;">
               <div class="upload-icon">↓</div>
               <div class="upload-text">수집된 reservations.csv 파일(들)을 드래그 앤 드롭 하세요</div>
               <div class="upload-subtext">여러 날짜의 파일을 드래그하여 한 번에 통합 분석 가능 (다중 선택 지원)</div>
               <input type="file" id="file-input" accept=".csv" multiple style="display: none;">
+            </div>
+          </div>
+          <div class="slide-footer" style="width: calc(100% - 160px); position: absolute; bottom: 55px;">
+            <span>다중 데이터 병합 분석</span>
+          </div>
+        </div>
+
+        <!-- Slide 2: Daily Average Dashboard & Summary cards -->
+        <div class="slide" id="slide-2">
+          <div class="slide-header">
+            <div class="slide-subtitle">01 / DAILY AVERAGE</div>
+            <h2 class="slide-title">매장별 일일 평균 예약 현황</h2>
+          </div>
+          <div class="slide-body" style="flex-direction: column; justify-content: flex-start; gap: 20px; width: 100%;">
+            <div id="no-data-msg-1" class="trend-fallback-box">
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">분석 데이터가 존재하지 않습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
 
             <div class="summary-grid" style="display: none;" id="summary-area">
@@ -675,30 +676,14 @@
                 <div class="summary-value" id="val-slots" data-val="0">-</div>
               </div>
             </div>
-          </div>
-          <div class="slide-footer">
-            <span>다중 파일 병합 및 기본 개요</span>
-            <span>Slide 2</span>
-          </div>
-        </div>
 
-        <!-- Slide 3: Studio Booking Rate Ranking -->
-        <div class="slide" id="slide-3">
-          <div class="slide-header">
-            <div class="slide-subtitle">02 / LEADERBOARD</div>
-            <h2 class="slide-title">매장별 실제 예약 완료 순위</h2>
-          </div>
-          <div class="slide-body" style="justify-content: flex-start; align-items: flex-start; width: 100%;">
-            <div id="no-data-msg-1" style="margin: auto; color: var(--text-sub); font-size: 1.1rem; opacity: 0.8;">
-              분석 데이터가 존재하지 않습니다. 먼저 2번 장표에서 CSV 파일을 업로드해 주세요.
-            </div>
-            <div class="ranking-container" id="ranking-list" style="display: none;">
+            <div class="ranking-container" id="ranking-list" style="display: none; width: 100%; box-sizing: border-box;">
               <!-- Dynamic Ranking Rows -->
             </div>
           </div>
           <div class="slide-footer">
-            <span>실질 예약 완료(마감) 절대 횟수 기준 1차 내림차순 정렬 결과</span>
-            <span>Slide 3</span>
+            <span>각 매장별 수집 일수 기준 일일 평균 예약 완료(마감) 건수 내림차순 정렬 결과</span>
+            <span>Slide 2</span>
           </div>
         </div>
 
@@ -707,7 +692,7 @@
           <div class="slide-header" style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
             <div>
               <div class="slide-subtitle">03 / TIMELINE</div>
-              <h2 class="slide-title">시간대별 예약 집중 분포</h2>
+              <h2 class="slide-title">시간대별 예약 분포</h2>
             </div>
             <div id="hourly-filter-container" style="display: none;" class="filter-chip-container">
               <button class="filter-chip active" data-filter="all">전체</button>
@@ -716,8 +701,9 @@
             </div>
           </div>
           <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
-            <div id="no-data-msg-2" style="margin: auto; color: var(--text-sub); font-size: 1.1rem; opacity: 0.8;">
-              분석 데이터가 존재하지 않습니다. 먼저 2번 장표에서 CSV 파일을 업로드해 주세요.
+            <div id="no-data-msg-2" class="trend-fallback-box">
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">분석 데이터가 존재하지 않습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
             <div class="chart-timeline-container" id="timeline-chart-area" style="display: none;">
               <div class="timeline-chart-wrapper" id="timeline-bar-wrapper">
@@ -735,14 +721,12 @@
         <div class="slide" id="slide-5">
           <div class="slide-header">
             <div class="slide-subtitle">04 / TIME SERIES FLOW</div>
-            <h2 class="slide-title">일자별 예약 완료 흐름</h2>
+            <h2 class="slide-title">일자별 예약 흐름</h2>
           </div>
           <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
             <div id="no-data-msg-3" class="trend-fallback-box">
-              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">다중 일자 데이터가
-                감지되지 않았습니다</div>
-              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">2번 장표에서 여러
-                날짜의 CSV 수집 파일들을 동시에 드래그 앤 드롭하여 업로드하시면 날짜별 예약 완료 추이 변동 차트가 활성화됩니다.</div>
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">다중 일자 데이터가 감지되지 않았습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
             <div class="chart-timeline-container" id="trend-chart-area" style="display: none; height: 230px;">
               <div class="trend-timeline-wrapper" id="trend-bar-wrapper">
@@ -751,7 +735,7 @@
             </div>
           </div>
           <div class="slide-footer">
-            <span>기간별 전체 매장 일일 예약 완료 건수의 거시적 추세 추적</span>
+            <span>기간별 전체 매장 일일 예약 건수의 거시적 추세 추적</span>
             <span>Slide 5</span>
           </div>
         </div>
@@ -842,9 +826,9 @@
       updateControls();
 
       // Trigger animations on active slide entry
-      if (currentSlide === 2) {
+      if (currentSlide === 1) {
         triggerLeaderboardAnimation();
-      } else if (currentSlide === 3) {
+      } else if (currentSlide === 2) {
         triggerHourlyChartAnimation();
       }
     }
@@ -1039,7 +1023,7 @@
 
       animateValue(valStudios, oldStudioVal, studiosSet.size, 800);
       valSlots.setAttribute('data-val', totalUnavailable);
-      animateValue(valSlots, oldSlotVal, totalUnavailable, 800, `건 / ${totalSlots}슬롯`);
+      animateValue(valSlots, oldSlotVal, totalUnavailable, 800, '건');
 
       if (datesSet.length > 1) {
         valDate.textContent = `${datesSet[0]} ~ ${datesSet[datesSet.length - 1]} (${datesSet.length}일간)`;
@@ -1047,15 +1031,19 @@
         valDate.textContent = datesSet[0];
       }
 
-      summaryArea.style.display = 'grid';
-      uploadZone.style.borderStyle = 'solid';
-      uploadZone.style.height = '120px';
-      uploadZone.querySelector('.upload-icon').style.fontSize = '2rem';
-      uploadZone.querySelector('.upload-icon').style.margin = '0';
+      // Restore summaryArea and uploadZone styles to normal
+      const summaryArea = document.getElementById('summary-area');
+      if (summaryArea) summaryArea.style.display = 'grid';
+      const noDataMsg1 = document.getElementById('no-data-msg-1');
+      if (noDataMsg1) noDataMsg1.style.display = 'none';
+
+      uploadZone.style.borderStyle = 'dashed';
+      uploadZone.style.height = '160px';
+      uploadZone.querySelector('.upload-icon').style.fontSize = '3rem';
       uploadZone.querySelector('.upload-text').textContent = '통합 분석 완료! 추가 CSV 수집 파일을 드래그하여 누적할 수 있습니다';
       uploadZone.querySelector('.upload-subtext').textContent = `병합 분석 완료 (${fileContents.length}개 파일)`;
 
-      // 2. Booking Results by Studio (Leaderboard based on absolute count)
+      // 2. Booking Results by Studio (Daily average reservation rates)
       const studioStats = {};
       studiosSet.forEach(name => {
         const studioRows = masterData.filter(d => d.studioName === name);
@@ -1063,32 +1051,41 @@
         const total = studioRows.length;
         const rate = total > 0 ? Math.round((unavailableCount / total) * 100) : 0;
 
+        // Extract unique active collection days per studio
+        const studioDates = new Set(studioRows.map(d => d.date));
+        const activeDays = studioDates.size || 1;
+
+        // Compute daily average reservation counts and collected slots (rounded to 1 decimal place)
+        const dailyAverage = parseFloat((unavailableCount / activeDays).toFixed(1));
+        const dailyTotalAverage = parseFloat((total / activeDays).toFixed(1));
+
         studioStats[name] = {
           name: name,
           unavailableCount: unavailableCount,
           total: total,
-          rate: rate
+          rate: rate,
+          activeDays: activeDays,
+          dailyAverage: dailyAverage,
+          dailyTotalAverage: dailyTotalAverage
         };
       });
 
-      // Sort by absolute unavailableCount desc, then by rate desc
+      // Sort studios by daily average reservation counts in descending order
       const sortedStudios = Object.values(studioStats).sort((a, b) => {
-        if (b.unavailableCount !== a.unavailableCount) {
-          return b.unavailableCount - a.unavailableCount;
+        if (b.dailyAverage !== a.dailyAverage) {
+          return b.dailyAverage - a.dailyAverage;
         }
         return b.rate - a.rate;
       });
 
-      noData1.style.display = 'none';
+      // Clear ranking list container before rendering
       rankingList.innerHTML = '';
       rankingList.style.display = 'flex';
-
-      const maxTotalSlots = Math.max(...sortedStudios.map(s => s.total), 1);
 
       sortedStudios.forEach((item, index) => {
         const row = document.createElement('div');
         row.classList.add('ranking-row');
-        const fillPercent = Math.round((item.unavailableCount / maxTotalSlots) * 100);
+        const fillPercent = item.dailyTotalAverage > 0 ? Math.round((item.dailyAverage / item.dailyTotalAverage) * 100) : 0;
         row.innerHTML = `
           <div class="ranking-num">${index + 1}</div>
           <div class="ranking-name">${item.name}</div>
@@ -1098,8 +1095,8 @@
             </div>
           </div>
           <div class="ranking-percentage" style="width: 140px; font-size: 0.95rem; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px;">
-            <span style="font-weight: 800; color: var(--accent);">${item.unavailableCount}건 완료</span>
-            <span style="font-size: 0.75rem; color: var(--text-sub); font-weight: 500;">총 ${item.total}슬롯 수집</span>
+            <span style="font-weight: 800; color: var(--accent);">일평균 ${item.dailyAverage}건 예약</span>
+            <span style="font-size: 0.75rem; color: var(--text-sub); font-weight: 500;">일평균 ${item.dailyTotalAverage}슬롯 (총 ${item.activeDays}일)</span>
           </div>
         `;
         rankingList.appendChild(row);
@@ -1113,7 +1110,7 @@
       renderHourlyChart('all');
 
       // 4. Time Series Daily Booking Rates (SVG Line chart)
-      if (datesSet.length > 1) {
+      if (datesSet.length >= 1) {
         noData3.style.display = 'none';
         trendBarWrapper.innerHTML = '';
         trendChartArea.style.display = 'flex';
@@ -1270,10 +1267,6 @@
         trendChartArea.style.display = 'none';
         noData3.style.display = 'block';
       }
-
-      setTimeout(() => {
-        goToSlide(1);
-      }, 500);
     }
 
     // Modular Renderer for Slide 4 with simplified day filtering logic
