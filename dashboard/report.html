@@ -987,10 +987,26 @@
 
     function processMergedData(fileContents) {
       let masterData = [];
+      let hasInvalidFile = false;
 
       fileContents.forEach(file => {
         const lines = file.text.split(/\r?\n/);
         if (lines.length < 2) return;
+
+        // Verify header structure
+        const header = lines[0].trim();
+        const headerMatches = header.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || header.split(',');
+        const isHeaderValid = headerMatches.some(h => h.toLowerCase().includes('studio')) &&
+                              headerMatches.some(h => h.toLowerCase().includes('resource')) &&
+                              headerMatches.some(h => h.toLowerCase().includes('date')) &&
+                              headerMatches.some(h => h.toLowerCase().includes('time')) &&
+                              headerMatches.some(h => h.toLowerCase().includes('status'));
+
+        if (!isHeaderValid) {
+          alert(`올바르지 않은 CSV 헤더 구조입니다: ${file.name}\n필수 컬럼이 누락되었거나 컬럼명이 다릅니다.`);
+          hasInvalidFile = true;
+          return;
+        }
 
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i].trim();
@@ -1007,6 +1023,14 @@
             status: matches[4].replace(/"/g, '').trim()
           };
 
+          // Validate date and time field formats
+          const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+          const timeRegex = /^\d{2}:\d{2}$/;
+          if (!dateRegex.test(row.date) || !timeRegex.test(row.time)) {
+            console.warn(`비정상 데이터 행 제외됨 (형식 불일치): ${line}`);
+            continue;
+          }
+
           const isDuplicate = masterData.some(d =>
             d.studioName === row.studioName &&
             d.resourceId === row.resourceId &&
@@ -1020,6 +1044,10 @@
           }
         }
       });
+
+      if (hasInvalidFile && masterData.length === 0) {
+        return;
+      }
 
       if (masterData.length === 0) {
         alert('파싱 가능한 예약 데이터 행이 존재하지 않습니다.');
