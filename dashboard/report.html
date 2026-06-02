@@ -686,17 +686,22 @@
           </div>
         </div>
 
-        <!-- Slide 4: Peak-Time Hourly Trends -->
-        <div class="slide" id="slide-4">
+        <!-- Slide 3: Peak-Time Hourly Trends -->
+        <div class="slide" id="slide-3">
           <div class="slide-header" style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
             <div>
               <div class="slide-subtitle">03 / TIMELINE</div>
               <h2 class="slide-title">시간대별 예약 분포</h2>
             </div>
-            <div id="hourly-filter-container" style="display: none;" class="filter-chip-container">
-              <button class="filter-chip active" data-filter="all">전체</button>
-              <button class="filter-chip" data-filter="weekday">주중</button>
-              <button class="filter-chip" data-filter="weekend">주말</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <select id="studio-filter" class="filter-select" style="display: none; font-family: inherit; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-main); outline: none; cursor: pointer;">
+                <option value="all">모든 매장</option>
+              </select>
+              <div id="hourly-filter-container" style="display: none;" class="filter-chip-container">
+                <button class="filter-chip active" data-filter="all">전체</button>
+                <button class="filter-chip" data-filter="weekday">주중</button>
+                <button class="filter-chip" data-filter="weekend">주말</button>
+              </div>
             </div>
           </div>
           <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
@@ -728,12 +733,12 @@
           </div>
           <div class="slide-footer">
             <span>영업 시간대별 평균 예약 마감(UNAVAILABLE) 누적 통계</span>
-            <span>Slide 4</span>
+            <span>Slide 3</span>
           </div>
         </div>
 
-        <!-- Slide 5: Multi-Day Time Series Trend -->
-        <div class="slide" id="slide-5">
+        <!-- Slide 4: Multi-Day Time Series Trend -->
+        <div class="slide" id="slide-4">
           <div class="slide-header">
             <div class="slide-subtitle">04 / TIME SERIES FLOW</div>
             <h2 class="slide-title">일자별 예약 흐름</h2>
@@ -751,7 +756,7 @@
           </div>
           <div class="slide-footer">
             <span>기간별 전체 매장 일일 예약 건수의 거시적 추세 추적</span>
-            <span>Slide 5</span>
+            <span>Slide 4</span>
           </div>
         </div>
 
@@ -1122,7 +1127,20 @@
       noData2.style.display = 'none';
       timelineChartArea.style.display = 'flex';
       hourlyFilterContainer.style.display = 'block';
-      renderHourlyChart('all');
+
+      const studioFilterSelect = document.getElementById('studio-filter');
+      if (studioFilterSelect) {
+        studioFilterSelect.style.display = 'block';
+        studioFilterSelect.innerHTML = '<option value="all">모든 매장</option>';
+        studiosSet.forEach(studioName => {
+          const opt = document.createElement('option');
+          opt.value = studioName;
+          opt.textContent = studioName;
+          studioFilterSelect.appendChild(opt);
+        });
+      }
+
+      renderHourlyChart();
 
       // 4. Time Series Daily Booking Rates (SVG Line chart)
       if (datesSet.length >= 1) {
@@ -1284,11 +1302,18 @@
       }
     }
 
-    // Modular Renderer for Slide 4 with simplified day filtering logic
-    function renderHourlyChart(filterValue) {
+    // Modular Renderer for Slide 3 with day and studio filtering logic
+    function renderHourlyChart() {
       if (!currentMasterData || currentMasterData.length === 0) return;
 
+      const activeChip = document.querySelector('.filter-chip.active');
+      const filterValue = activeChip ? activeChip.getAttribute('data-filter') : 'all';
+      const studioFilterSelect = document.getElementById('studio-filter');
+      const studioFilter = studioFilterSelect ? studioFilterSelect.value : 'all';
+
       const filteredData = currentMasterData.filter(d => {
+        if (studioFilter !== 'all' && d.studioName !== studioFilter) return false;
+
         if (filterValue === 'all') return true;
         const dateObj = new Date(d.date);
         const day = dateObj.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
@@ -1348,12 +1373,20 @@
       });
     }
 
+    // Bind change event to studio filter select
+    const studioFilterSelect = document.getElementById('studio-filter');
+    if (studioFilterSelect) {
+      studioFilterSelect.addEventListener('change', () => {
+        renderHourlyChart();
+      });
+    }
+
     // Bind click event to filter chips
     filterChips.forEach(chip => {
       chip.addEventListener('click', (e) => {
         filterChips.forEach(c => c.classList.remove('active'));
         e.target.classList.add('active');
-        renderHourlyChart(e.target.getAttribute('data-filter'));
+        renderHourlyChart();
       });
     });
   </script>
