@@ -633,11 +633,13 @@
 
         <!-- Slide 1: Cover & Integrated Upload Zone -->
         <div class="slide cover-slide active" id="slide-1">
-          <div class="cover-main" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; gap: 24px; padding-top: 80px;">
+          <div class="cover-main"
+            style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; gap: 24px;">
             <h1 class="cover-title" style="margin: 0;">예약 현황 대시보드</h1>
 
             <!-- Integrated drag & drop file upload zone inside cover main -->
-            <div class="upload-zone" id="upload-zone" style="width: 100%; max-width: 800px; height: 160px; margin-top: 20px;">
+            <div class="upload-zone" id="upload-zone"
+               style="width: 100%; max-width: 800px; height: 160px;">
               <div class="upload-icon">↓</div>
               <div class="upload-text">수집된 reservations.csv 파일(들)을 드래그 앤 드롭 하세요</div>
               <div class="upload-subtext">여러 날짜의 파일을 드래그하여 한 번에 통합 분석 가능 (다중 선택 지원)</div>
@@ -657,13 +659,15 @@
           </div>
           <div class="slide-body" style="flex-direction: column; justify-content: flex-start; gap: 20px; width: 100%;">
             <div id="no-data-msg-1" class="trend-fallback-box">
-              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">분석 데이터가 존재하지 않습니다</div>
-              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">분석 데이터가
+                존재하지 않습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서
+                reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
 
             <div class="summary-grid" style="display: none;" id="summary-area">
               <div class="summary-card">
-                <div class="summary-label">분석 대상 사진관</div>
+                <div class="summary-label">분석 대상 매장</div>
                 <div class="summary-value" id="val-studios">0</div>
               </div>
               <div class="summary-card">
@@ -676,7 +680,8 @@
               </div>
             </div>
 
-            <div class="ranking-container" id="ranking-list" style="display: none; width: 100%; box-sizing: border-box;">
+            <div class="ranking-container" id="ranking-list"
+              style="display: none; width: 100%; box-sizing: border-box;">
               <!-- Dynamic Ranking Rows -->
             </div>
           </div>
@@ -686,15 +691,29 @@
           </div>
         </div>
 
-        <!-- Slide 3: Peak-Time Hourly Trends -->
+        <!-- Slide 3: Peak-Time Hourly & Day of Week Trends (Merged Layout) -->
         <div class="slide" id="slide-3">
-          <div class="slide-header" style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+          <div class="slide-header"
+            style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
             <div>
-              <div class="slide-subtitle">03 / TIMELINE</div>
-              <h2 class="slide-title">시간대별 예약 분포</h2>
+              <div class="slide-subtitle">03 / TIMELINE & DAY OF WEEK</div>
+              <h2 class="slide-title">시간대 및 요일별 예약 분포</h2>
+              <div style="display: flex; gap: 15px; font-size: 0.75rem; color: var(--text-sub); margin-top: 8px;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <span style="display: inline-block; width: 12px; height: 12px; background: #e2e8f0; border-radius: 2px;"></span>
+                  <span>누적 예약 완료 건수 (좌측 축)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <span style="display: inline-block; width: 12px; height: 2px; background: #4f46e5; position: relative; margin-right: 2px;">
+                    <span style="position: absolute; width: 6px; height: 6px; background: #4f46e5; border-radius: 50%; left: 3px; top: -2px;"></span>
+                  </span>
+                  <span>일평균 예약 완료 건수 (우측 축)</span>
+                </div>
+              </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-              <select id="studio-filter" class="filter-select" style="display: none; font-family: inherit; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-main); outline: none; cursor: pointer;">
+              <select id="studio-filter" class="filter-select"
+                style="display: none; font-family: inherit; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-main); outline: none; cursor: pointer;">
                 <option value="all">모든 매장</option>
               </select>
               <div id="hourly-filter-container" style="display: none;" class="filter-chip-container">
@@ -704,40 +723,85 @@
               </div>
             </div>
           </div>
-          <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
+          <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 15px; overflow-y: auto;">
             <div id="no-data-msg-2" class="trend-fallback-box">
-              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">분석 데이터가 존재하지 않습니다</div>
-              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">분석 데이터가
+                존재하지 않습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서
+                reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
-            <div class="chart-timeline-container" id="timeline-chart-area" style="display: none;">
+            
+            <!-- Hourly Timeline Chart Area (Resized to height: 180px) -->
+            <div class="chart-timeline-container" id="timeline-chart-area" style="display: none; height: 180px;">
               <div style="display: flex; width: 100%; gap: 15px; align-items: flex-end; position: relative;">
                 <!-- Left: Y-Axis Labels -->
-                <div class="chart-y-axis" id="chart-y-axis" style="display: flex; flex-direction: column; justify-content: space-between; height: 300px; padding-bottom: 30px; font-size: 0.75rem; color: var(--text-sub); width: 45px; text-align: right; box-sizing: border-box;">
+                <div class="chart-y-axis" id="chart-y-axis"
+                  style="display: flex; flex-direction: column; justify-content: space-between; height: 180px; padding-bottom: 25px; font-size: 0.75rem; color: var(--text-sub); width: 45px; flex-shrink: 0; text-align: right; box-sizing: border-box;">
                   <!-- Dynamic Y-Axis Labels -->
                 </div>
-                
-                <!-- Right: Main Chart Grid and Columns -->
-                <div style="flex: 1; position: relative; height: 300px;">
+
+                <!-- Center: Main Chart Grid, Bars, and Lines -->
+                <div style="flex: 1; position: relative; height: 180px;">
                   <!-- Background Grid Lines -->
-                  <div class="chart-grid-lines" id="chart-grid-lines" style="position: absolute; top: 0; left: 0; width: 100%; height: 300px; pointer-events: none; padding-bottom: 30px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; z-index: 1;">
+                  <div class="chart-grid-lines" id="chart-grid-lines"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 180px; pointer-events: none; padding-bottom: 25px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; z-index: 1;">
                     <!-- Dynamic Grid Line Divs -->
                   </div>
-                  
+
                   <!-- Bar wrapper stacked above grid lines -->
-                  <div class="timeline-chart-wrapper" id="timeline-bar-wrapper" style="position: relative; z-index: 2; height: 300px; padding-bottom: 30px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0; margin-bottom: 0;">
+                  <div class="timeline-chart-wrapper" id="timeline-bar-wrapper"
+                    style="position: relative; z-index: 2; height: 180px; padding-bottom: 25px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0; margin-bottom: 0;">
                     <!-- Dynamic Chart Columns -->
                   </div>
+
+                  <!-- Overlay SVG Line Chart (Right Y-Axis - Daily Average Bookings) -->
+                  <div id="timeline-line-wrapper"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 155px; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 0.5s ease-in-out;">
+                    <!-- Dynamic SVG Line Chart -->
+                  </div>
+                </div>
+
+                <!-- Right: Right Y-Axis Labels (Daily Average) -->
+                <div class="chart-y-axis-right" id="chart-y-axis-right"
+                  style="display: flex; flex-direction: column; justify-content: space-between; height: 180px; padding-bottom: 25px; font-size: 0.75rem; color: var(--primary); width: 75px; flex-shrink: 0; text-align: left; padding-left: 10px; box-sizing: border-box; white-space: nowrap;">
+                  <!-- Dynamic Right Y-Axis Labels -->
                 </div>
               </div>
             </div>
+
+            <!-- Day of Week Chart Area (Resized to height: 180px) -->
+            <div class="chart-timeline-container" id="dow-chart-area" style="display: none; height: 180px;">
+              <div style="display: flex; width: 100%; gap: 15px; align-items: flex-end; position: relative;">
+                <!-- Left: Y-Axis Labels -->
+                <div class="chart-y-axis" id="dow-chart-y-axis"
+                  style="display: flex; flex-direction: column; justify-content: space-between; height: 180px; padding-bottom: 25px; font-size: 0.75rem; color: var(--text-sub); width: 45px; flex-shrink: 0; text-align: right; box-sizing: border-box;">
+                </div>
+
+                <!-- Right: Main Chart Grid and Columns -->
+                <div style="flex: 1; position: relative; height: 180px;">
+                  <!-- Background Grid Lines -->
+                  <div class="chart-grid-lines" id="dow-chart-grid-lines"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 180px; pointer-events: none; padding-bottom: 25px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; z-index: 1;">
+                  </div>
+
+                  <!-- Bar wrapper stacked above grid lines -->
+                  <div class="timeline-chart-wrapper" id="dow-bar-wrapper"
+                    style="position: relative; z-index: 2; height: 180px; padding-bottom: 25px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0; margin-bottom: 0;">
+                  </div>
+                </div>
+                <!-- Right dummy space to match hourly chart's right y-axis width -->
+                <div style="width: 75px; flex-shrink: 0; box-sizing: border-box;"></div>
+              </div>
+            </div>
+
           </div>
           <div class="slide-footer">
-            <span>영업 시간대별 평균 예약 마감(UNAVAILABLE) 누적 통계</span>
+            <span>영업 시간대별 및 요일별 일평균 예약 마감(UNAVAILABLE) 통계</span>
             <span>Slide 3</span>
           </div>
         </div>
 
-        <!-- Slide 4: Multi-Day Time Series Trend -->
+        <!-- Slide 4: Multi-Day Time Series Trend (Shifted to Slide 4) -->
         <div class="slide" id="slide-4">
           <div class="slide-header">
             <div class="slide-subtitle">04 / TIME SERIES FLOW</div>
@@ -745,8 +809,10 @@
           </div>
           <div class="slide-body" style="flex-direction: column; width: 100%; justify-content: flex-start; gap: 20px;">
             <div id="no-data-msg-3" class="trend-fallback-box">
-              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">다중 일자 데이터가 감지되지 않았습니다</div>
-              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
+              <div style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">다중 일자 데이터가
+                감지되지 않았습니다</div>
+              <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서
+                reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
             <div class="chart-timeline-container" id="trend-chart-area" style="display: none; height: 230px;">
               <div class="trend-timeline-wrapper" id="trend-bar-wrapper">
@@ -838,6 +904,22 @@
         fill.offsetHeight; // Force reflow
         fill.style.height = targetHeight;
       });
+
+      const lineWrapper = document.getElementById('timeline-line-wrapper');
+      if (lineWrapper) {
+        lineWrapper.style.opacity = '1';
+      }
+    }
+
+    // Trigger animations when the user visually enters the Day of Week slide
+    function triggerDayOfWeekChartAnimation() {
+      const fills = document.querySelectorAll('#dow-bar-wrapper .chart-bar-fill');
+      fills.forEach(fill => {
+        const targetHeight = fill.getAttribute('data-height') || '0%';
+        fill.style.height = '0%';
+        fill.offsetHeight; // Force reflow
+        fill.style.height = targetHeight;
+      });
     }
 
     function goToSlide(index) {
@@ -850,6 +932,7 @@
         triggerLeaderboardAnimation();
       } else if (currentSlide === 2) {
         triggerHourlyChartAnimation();
+        triggerDayOfWeekChartAnimation();
       }
     }
 
@@ -997,10 +1080,10 @@
         const header = lines[0].trim();
         const headerMatches = header.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || header.split(',');
         const isHeaderValid = headerMatches.some(h => h.toLowerCase().includes('studio')) &&
-                              headerMatches.some(h => h.toLowerCase().includes('resource')) &&
-                              headerMatches.some(h => h.toLowerCase().includes('date')) &&
-                              headerMatches.some(h => h.toLowerCase().includes('time')) &&
-                              headerMatches.some(h => h.toLowerCase().includes('status'));
+          headerMatches.some(h => h.toLowerCase().includes('resource')) &&
+          headerMatches.some(h => h.toLowerCase().includes('date')) &&
+          headerMatches.some(h => h.toLowerCase().includes('time')) &&
+          headerMatches.some(h => h.toLowerCase().includes('status'));
 
         if (!isHeaderValid) {
           alert(`올바르지 않은 CSV 헤더 구조입니다: ${file.name}\n필수 컬럼이 누락되었거나 컬럼명이 다릅니다.`);
@@ -1142,9 +1225,9 @@
               <div class="progress-bar-fill" data-width="${fillPercent}%" style="width: 0%"></div>
             </div>
           </div>
-          <div class="ranking-percentage" style="width: 140px; font-size: 0.95rem; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px;">
-            <span style="font-weight: 800; color: var(--accent);">일평균 ${item.dailyAverage}건 예약</span>
-            <span style="font-size: 0.75rem; color: var(--text-sub); font-weight: 500;">일평균 ${item.dailyTotalAverage}슬롯 (총 ${item.activeDays}일)</span>
+          <div class="ranking-percentage" style="width: 160px; font-size: 0.95rem; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px;">
+            <span style="font-weight: 800; color: var(--accent);">일평균 ${item.dailyAverage}건 (총 ${item.unavailableCount}건)</span>
+            <span style="font-size: 0.75rem; color: var(--text-sub); font-weight: 500;">일평균 ${item.dailyTotalAverage}슬롯 (수집 ${item.activeDays}일)</span>
           </div>
         `;
         rankingList.appendChild(row);
@@ -1169,6 +1252,7 @@
       }
 
       renderHourlyChart();
+      renderDayOfWeekChart();
 
       // 4. Time Series Daily Booking Rates (SVG Line chart)
       if (datesSet.length >= 1) {
@@ -1345,39 +1429,56 @@
         if (filterValue === 'all') return true;
         const dateObj = new Date(d.date);
         const day = dateObj.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
-        
+
         if (filterValue === 'weekday') return (day >= 1 && day <= 5);
         if (filterValue === 'weekend') return (day === 0 || day === 6);
         return true;
       });
 
-      const hourlyCounts = {};
+      const hourlyTotals = {};
+      const hourlyAverages = {};
       const uniqueTimes = Array.from(new Set(currentMasterData.map(d => d.time))).sort();
+      const uniqueDates = Array.from(new Set(filteredData.map(d => d.date)));
+      const daysCount = uniqueDates.length || 1;
 
       uniqueTimes.forEach(time => {
         const timeRows = filteredData.filter(d => d.time === time);
         const unavailableCount = timeRows.filter(d => d.status === 'UNAVAILABLE').length;
-        hourlyCounts[time] = unavailableCount;
+        hourlyTotals[time] = unavailableCount;
+        hourlyAverages[time] = parseFloat((unavailableCount / daysCount).toFixed(1));
       });
 
-      const maxCount = Math.max(...Object.values(hourlyCounts), 1);
+      const maxTotal = Math.max(...Object.values(hourlyTotals), 1);
+      const maxAverage = Math.max(...Object.values(hourlyAverages), 1);
 
-      // Calculate dynamic integer Y-Axis ticks based on maxCount
-      const stepVal = Math.ceil(maxCount / 4) || 1;
-      const yTicks = [stepVal * 4, stepVal * 3, stepVal * 2, stepVal * 1, 0];
-      const yMax = yTicks[0];
+      // Left Y-Axis Scale (Total Bookings)
+      const yMaxLeft = Math.ceil(maxTotal) || 1;
+      const stepLeft = Math.ceil(yMaxLeft / 4) || 1;
+      const yTicksLeft = [stepLeft * 4, stepLeft * 3, stepLeft * 2, stepLeft * 1, 0];
+      const yMaxLeftScale = yTicksLeft[0];
 
-      // Draw Y-Axis Labels
+      // Right Y-Axis Scale (Daily Average Bookings)
+      const yMaxRight = Math.ceil(maxAverage) || 1;
+      const stepRight = parseFloat((yMaxRight / 4).toFixed(1));
+      const yTicksRight = [yMaxRight, parseFloat((yMaxRight - stepRight).toFixed(1)), parseFloat((yMaxRight - stepRight * 2).toFixed(1)), parseFloat((yMaxRight - stepRight * 3).toFixed(1)), 0];
+
+      // Draw Left Y-Axis Labels
       const yAxisContainer = document.getElementById('chart-y-axis');
       if (yAxisContainer) {
-        yAxisContainer.innerHTML = yTicks.map(val => `<div>${val}건</div>`).join('');
+        yAxisContainer.innerHTML = yTicksLeft.map(val => `<div>${val}건</div>`).join('');
+      }
+
+      // Draw Right Y-Axis Labels
+      const yAxisRightContainer = document.getElementById('chart-y-axis-right');
+      if (yAxisRightContainer) {
+        yAxisRightContainer.innerHTML = yTicksRight.map(val => `<div style="white-space: nowrap;">${val}건(평균)</div>`).join('');
       }
 
       // Draw Background Grid Lines
       const gridContainer = document.getElementById('chart-grid-lines');
       if (gridContainer) {
-        gridContainer.innerHTML = yTicks.map((val, idx) => {
-          if (idx === yTicks.length - 1) return '<div style="height: 0;"></div>';
+        gridContainer.innerHTML = yTicksLeft.map((val, idx) => {
+          if (idx === yTicksLeft.length - 1) return '<div style="height: 0;"></div>';
           return '<div style="border-top: 1px dashed #e2e8f0; width: 100%; height: 0;"></div>';
         }).join('');
       }
@@ -1385,20 +1486,206 @@
       timelineBarWrapper.innerHTML = '';
 
       uniqueTimes.forEach(time => {
-        const count = hourlyCounts[time];
-        // Calculate height based on absolute yMax scale
-        const heightPercent = Math.round((count / yMax) * 100);
+        const total = hourlyTotals[time];
+        const heightPercent = Math.round((total / yMaxLeftScale) * 100);
 
         const col = document.createElement('div');
         col.classList.add('chart-bar-column');
         col.innerHTML = `
-          <div class="chart-bar-fill" data-height="${heightPercent || 6}%" style="height: 0%">
-            <div class="chart-bar-value">${count}건</div>
+          <div class="chart-bar-fill" data-height="${heightPercent || 6}%" style="height: 0%; background: #e2e8f0;">
+            <div class="chart-bar-value">${total}건</div>
           </div>
           <div class="chart-bar-label">${time}</div>
         `;
         timelineBarWrapper.appendChild(col);
       });
+
+      // Overlay SVG Line Chart Drawing
+      const lineWrapper = document.getElementById('timeline-line-wrapper');
+      if (lineWrapper) {
+        lineWrapper.innerHTML = '';
+        lineWrapper.style.opacity = '0';
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        const width = 1000;
+        const height = 155;
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.style.overflow = "visible";
+
+        svg.innerHTML = `
+          <defs>
+            <linearGradient id="hourly-line-glow" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        `;
+
+        const stepX = width / (uniqueTimes.length || 1);
+        const usableHeight = height - 40;
+        const points = uniqueTimes.map((time, index) => {
+          const avg = hourlyAverages[time];
+          const x = stepX * index + stepX / 2;
+          const y = usableHeight * (1 - avg / yMaxRight) + 10;
+          return { x, y, time, avg };
+        });
+
+        let d = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+          const curr = points[i];
+          const next = points[i + 1];
+          const cpX1 = curr.x + stepX / 3;
+          const cpY1 = curr.y;
+          const cpX2 = next.x - stepX / 3;
+          const cpY2 = next.y;
+          d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
+        }
+
+        const dFill = `${d} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
+
+        const pathFill = document.createElementNS(svgNS, "path");
+        pathFill.setAttribute("d", dFill);
+        pathFill.setAttribute("fill", "url(#hourly-line-glow)");
+        svg.appendChild(pathFill);
+
+        const pathLine = document.createElementNS(svgNS, "path");
+        pathLine.setAttribute("d", d);
+        pathLine.setAttribute("fill", "none");
+        pathLine.setAttribute("stroke", "#4f46e5");
+        pathLine.setAttribute("stroke-width", "3.5");
+        pathLine.setAttribute("stroke-linecap", "round");
+        pathLine.setAttribute("stroke-linejoin", "round");
+        svg.appendChild(pathLine);
+
+        points.forEach((pt) => {
+          const dotGroup = document.createElementNS(svgNS, "g");
+          dotGroup.style.cursor = "pointer";
+          dotGroup.style.pointerEvents = "auto";
+
+          const dotOuter = document.createElementNS(svgNS, "circle");
+          dotOuter.setAttribute("cx", pt.x);
+          dotOuter.setAttribute("cy", pt.y);
+          dotOuter.setAttribute("r", "8");
+          dotOuter.setAttribute("fill", "#4f46e5");
+          dotOuter.setAttribute("opacity", "0");
+          dotOuter.style.transition = "all 0.2s ease";
+          dotGroup.appendChild(dotOuter);
+
+          const dotInner = document.createElementNS(svgNS, "circle");
+          dotInner.setAttribute("cx", pt.x);
+          dotInner.setAttribute("cy", pt.y);
+          dotInner.setAttribute("r", "4");
+          dotInner.setAttribute("fill", "#ffffff");
+          dotInner.setAttribute("stroke", "#4f46e5");
+          dotInner.setAttribute("stroke-width", "2.5");
+          dotGroup.appendChild(dotInner);
+
+          const rateText = document.createElementNS(svgNS, "text");
+          rateText.setAttribute("x", pt.x);
+          rateText.setAttribute("y", pt.y - 12);
+          rateText.setAttribute("text-anchor", "middle");
+          rateText.setAttribute("fill", "#4f46e5");
+          rateText.setAttribute("font-weight", "800");
+          rateText.setAttribute("font-size", "11");
+          rateText.style.opacity = "0";
+          rateText.style.transition = "all 0.2s ease";
+          rateText.textContent = `평균 ${pt.avg}건`;
+          dotGroup.appendChild(rateText);
+
+          dotGroup.addEventListener("mouseenter", () => {
+            dotOuter.setAttribute("r", "12");
+            dotOuter.setAttribute("opacity", "0.15");
+            rateText.style.opacity = "1";
+            rateText.setAttribute("y", pt.y - 15);
+          });
+
+          dotGroup.addEventListener("mouseleave", () => {
+            dotOuter.setAttribute("r", "8");
+            dotOuter.setAttribute("opacity", "0");
+            rateText.style.opacity = "0";
+            rateText.setAttribute("y", pt.y - 12);
+          });
+
+          svg.appendChild(dotGroup);
+        });
+
+        lineWrapper.appendChild(svg);
+      }
+    }
+
+    // Modular Renderer for Day of Week Slide with studio filtering logic
+    function renderDayOfWeekChart() {
+      if (!currentMasterData || currentMasterData.length === 0) return;
+
+      const studioFilterSelect = document.getElementById('studio-filter');
+      const studioFilter = studioFilterSelect ? studioFilterSelect.value : 'all';
+
+      const filteredData = currentMasterData.filter(d => {
+        if (studioFilter !== 'all' && d.studioName !== studioFilter) return false;
+        return true;
+      });
+
+      const dayOfWeekCounts = Array(7).fill(0);
+      const dayOfWeekDates = Array(7).fill().map(() => new Set());
+
+      filteredData.forEach(d => {
+        const dateObj = new Date(d.date);
+        const day = dateObj.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
+        dayOfWeekDates[day].add(d.date);
+        if (d.status === 'UNAVAILABLE') {
+          dayOfWeekCounts[day]++;
+        }
+      });
+
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      const dayAverages = dayOfWeekCounts.map((count, index) => {
+        const daysCount = dayOfWeekDates[index].size || 1;
+        return parseFloat((count / daysCount).toFixed(1));
+      });
+
+      const maxVal = Math.max(...dayAverages, 1);
+      const yMax = Math.ceil(maxVal) || 1;
+      const stepVal = parseFloat((yMax / 4).toFixed(1));
+      const yTicks = [yMax, parseFloat((yMax - stepVal).toFixed(1)), parseFloat((yMax - stepVal * 2).toFixed(1)), parseFloat((yMax - stepVal * 3).toFixed(1)), 0];
+
+      const yAxisContainer = document.getElementById('dow-chart-y-axis');
+      if (yAxisContainer) {
+        yAxisContainer.innerHTML = yTicks.map(val => `<div>${val}건</div>`).join('');
+      }
+
+      const gridContainer = document.getElementById('dow-chart-grid-lines');
+      if (gridContainer) {
+        gridContainer.innerHTML = yTicks.map((val, idx) => {
+          if (idx === yTicks.length - 1) return '<div style="height: 0;"></div>';
+          return '<div style="border-top: 1px dashed #e2e8f0; width: 100%; height: 0;"></div>';
+        }).join('');
+      }
+
+      const dowBarWrapper = document.getElementById('dow-bar-wrapper');
+      if (dowBarWrapper) {
+        dowBarWrapper.innerHTML = '';
+        dayNames.forEach((name, index) => {
+          const avg = dayAverages[index];
+          const heightPercent = Math.round((avg / yMax) * 100);
+
+          const col = document.createElement('div');
+          col.classList.add('chart-bar-column');
+          col.innerHTML = `
+            <div class="chart-bar-fill" data-height="${heightPercent || 6}%" style="height: 0%">
+              <div class="chart-bar-value">${avg}건</div>
+            </div>
+            <div class="chart-bar-label">${name}요일</div>
+          `;
+          dowBarWrapper.appendChild(col);
+        });
+      }
+
+      const noData4 = document.getElementById('no-data-msg-4');
+      const dowChartArea = document.getElementById('dow-chart-area');
+      if (noData4) noData4.style.display = 'none';
+      if (dowChartArea) dowChartArea.style.display = 'flex';
     }
 
     // Bind change event to studio filter select
@@ -1406,6 +1693,7 @@
     if (studioFilterSelect) {
       studioFilterSelect.addEventListener('change', () => {
         renderHourlyChart();
+        renderDayOfWeekChart();
       });
     }
 
