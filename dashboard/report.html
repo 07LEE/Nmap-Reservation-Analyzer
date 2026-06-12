@@ -10,6 +10,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -354,79 +355,10 @@
       text-align: right;
     }
 
-    /* Hourly Chart Styling */
+    /* Chart Container Styling */
     .chart-timeline-container {
-      display: flex;
-      flex-direction: column;
       width: 100%;
-      gap: 15px;
       margin-top: 30px;
-    }
-
-    .timeline-chart-wrapper {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 8px;
-      width: 100%;
-    }
-
-    .chart-bar-column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex: 1;
-      height: 100%;
-      justify-content: flex-end;
-      position: relative;
-    }
-
-    .chart-bar-fill {
-      width: 45%;
-      background: #cbd5e1;
-      border-radius: 4px 4px 0 0;
-      height: 0%;
-      transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-    }
-
-    .chart-bar-column:hover .chart-bar-fill {
-      background: var(--primary);
-    }
-
-    .chart-bar-value {
-      position: absolute;
-      top: -24px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--primary);
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .chart-bar-column:hover .chart-bar-value {
-      opacity: 1;
-    }
-
-    .chart-bar-label {
-      font-size: 0.75rem;
-      color: var(--text-sub);
-      margin-top: 8px;
-      font-weight: 500;
-    }
-
-    /* Time Series Line Chart styling */
-    .trend-timeline-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 220px;
-      width: 100%;
-      position: relative;
     }
 
     .trend-fallback-box {
@@ -812,53 +744,14 @@
                 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
             
-            <!-- Hourly Timeline Chart Area (Resized to height: 180px) -->
-            <div class="chart-timeline-container" id="timeline-chart-area" style="display: none; height: 180px;">
-              <div style="display: flex; width: 100%; gap: 15px; align-items: flex-end; position: relative;">
-                <!-- Left: Y-Axis Labels -->
-                <div class="chart-y-axis" id="chart-y-axis"
-                  style="display: flex; flex-direction: column; justify-content: space-between; height: 180px; padding-bottom: 25px; font-size: 0.75rem; color: var(--text-sub); width: 45px; flex-shrink: 0; text-align: right; box-sizing: border-box;">
-                  <!-- Dynamic Y-Axis Labels -->
-                </div>
-
-                <!-- Center: Main Chart Grid, Bars, and Lines -->
-                <div style="flex: 1; position: relative; height: 180px;">
-                  <!-- Background Grid Lines -->
-                  <div class="chart-grid-lines" id="chart-grid-lines"
-                    style="position: absolute; top: 0; left: 0; width: 100%; height: 180px; pointer-events: none; padding-bottom: 25px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; z-index: 1;">
-                    <!-- Dynamic Grid Line Divs -->
-                  </div>
-
-                  <!-- Bar wrapper stacked above grid lines -->
-                  <div class="timeline-chart-wrapper" id="timeline-bar-wrapper"
-                    style="position: relative; z-index: 2; height: 180px; padding-bottom: 25px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0; margin-bottom: 0;">
-                    <!-- Dynamic Chart Columns -->
-                  </div>
-                </div>
-              </div>
+            <!-- Hourly Timeline Chart Area -->
+            <div id="timeline-chart-area" style="display: none; width: 100%; height: 180px; margin-top: 15px;">
+              <canvas id="hourly-chart"></canvas>
             </div>
 
-            <!-- Day of Week Chart Area (Resized to height: 180px) -->
-            <div class="chart-timeline-container" id="dow-chart-area" style="display: none; height: 180px;">
-              <div style="display: flex; width: 100%; gap: 15px; align-items: flex-end; position: relative;">
-                <!-- Left: Y-Axis Labels -->
-                <div class="chart-y-axis" id="dow-chart-y-axis"
-                  style="display: flex; flex-direction: column; justify-content: space-between; height: 180px; padding-bottom: 25px; font-size: 0.75rem; color: var(--text-sub); width: 45px; flex-shrink: 0; text-align: right; box-sizing: border-box;">
-                </div>
-
-                <!-- Right: Main Chart Grid and Columns -->
-                <div style="flex: 1; position: relative; height: 180px;">
-                  <!-- Background Grid Lines -->
-                  <div class="chart-grid-lines" id="dow-chart-grid-lines"
-                    style="position: absolute; top: 0; left: 0; width: 100%; height: 180px; pointer-events: none; padding-bottom: 25px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; z-index: 1;">
-                  </div>
-
-                  <!-- Bar wrapper stacked above grid lines -->
-                  <div class="timeline-chart-wrapper" id="dow-bar-wrapper"
-                    style="position: relative; z-index: 2; height: 180px; padding-bottom: 25px; box-sizing: border-box; border-bottom: 1px solid #e2e8f0; margin-bottom: 0;">
-                  </div>
-                </div>
-              </div>
+            <!-- Day of Week Chart Area -->
+            <div id="dow-chart-area" style="display: none; width: 100%; height: 180px; margin-top: 25px;">
+              <canvas id="dow-chart"></canvas>
             </div>
 
           </div>
@@ -881,10 +774,8 @@
               <div style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; font-weight: 400;">먼저 1페이지에서
                 reservations.csv 파일(들)을 드래그 앤 드롭하여 업로드해 주세요.</div>
             </div>
-            <div class="chart-timeline-container" id="trend-chart-area" style="display: none; height: 230px;">
-              <div class="trend-timeline-wrapper" id="trend-bar-wrapper">
-                <!-- Dynamic SVG Time Series Chart -->
-              </div>
+            <div id="trend-chart-area" style="display: none; width: 100%; height: 230px;">
+              <canvas id="trend-chart"></canvas>
             </div>
           </div>
           <div class="slide-footer">
@@ -934,6 +825,11 @@
   </div>
 
   <script>
+    // --- Chart.js Instances ---
+    let hourlyChartInstance = null;
+    let dowChartInstance = null;
+    let trendChartInstance = null;
+
     // --- Responsive Deck Autofit Logic ---
     const deckContainer = document.querySelector('.deck-container');
 
@@ -991,28 +887,6 @@
       });
     }
 
-    // Trigger animations when the user visually enters the Hourly Timeline slide
-    function triggerHourlyChartAnimation() {
-      const fills = document.querySelectorAll('#timeline-bar-wrapper .chart-bar-fill');
-      fills.forEach(fill => {
-        const targetHeight = fill.getAttribute('data-height') || '0%';
-        fill.style.height = '0%';
-        fill.offsetHeight; // Force reflow
-        fill.style.height = targetHeight;
-      });
-    }
-
-    // Trigger animations when the user visually enters the Day of Week slide
-    function triggerDayOfWeekChartAnimation() {
-      const fills = document.querySelectorAll('#dow-bar-wrapper .chart-bar-fill');
-      fills.forEach(fill => {
-        const targetHeight = fill.getAttribute('data-height') || '0%';
-        fill.style.height = '0%';
-        fill.offsetHeight; // Force reflow
-        fill.style.height = targetHeight;
-      });
-    }
-
     function goToSlide(index) {
       if (index < 0 || index >= slides.length) return;
       currentSlide = index;
@@ -1022,8 +896,19 @@
       if (currentSlide === 1) {
         triggerLeaderboardAnimation();
       } else if (currentSlide === 2) {
-        triggerHourlyChartAnimation();
-        triggerDayOfWeekChartAnimation();
+        if (hourlyChartInstance) {
+          hourlyChartInstance.resize();
+          hourlyChartInstance.update();
+        }
+        if (dowChartInstance) {
+          dowChartInstance.resize();
+          dowChartInstance.update();
+        }
+      } else if (currentSlide === 3) {
+        if (trendChartInstance) {
+          trendChartInstance.resize();
+          trendChartInstance.update();
+        }
       } else if (currentSlide === 4) {
         triggerHeatmapAnimation();
       }
@@ -1330,6 +1215,8 @@
       currentMasterData = masterData;
       noData2.style.display = 'none';
       timelineChartArea.style.display = 'flex';
+      const dowChartArea = document.getElementById('dow-chart-area');
+      if (dowChartArea) dowChartArea.style.display = 'flex';
       hourlyFilterContainer.style.display = 'block';
 
       const studioFilterSelect = document.getElementById('studio-filter');
@@ -1348,10 +1235,9 @@
       renderDayOfWeekChart();
       renderHeatmap();
 
-      // 4. Time Series Daily Booking Rates (SVG Line chart)
+      // 4. Time Series Daily Booking Rates (Chart.js Line chart)
       if (datesSet.length >= 1) {
         noData3.style.display = 'none';
-        trendBarWrapper.innerHTML = '';
         trendChartArea.style.display = 'flex';
 
         const dailyRates = [];
@@ -1361,147 +1247,74 @@
           dailyRates.push({ date: date, count: unavailableCount });
         });
 
-        // Dynamic SVG Drawing
-        const svgNS = "http://www.w3.org/2000/svg";
-        const width = 1100;
-        const height = 210;
-        const paddingLeftRight = 50;
-        const paddingTopBottom = 30;
-
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("width", "100%");
-        svg.setAttribute("height", "100%");
-        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-        svg.style.overflow = "visible";
-
-        svg.innerHTML = `
-          <defs>
-            <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.12"/>
-              <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-        `;
-
-        const chartWidth = width - paddingLeftRight * 2;
-        const chartHeight = height - paddingTopBottom * 2;
-        const pointsCount = dailyRates.length;
-        const stepX = chartWidth / (pointsCount - 1 || 1);
-
-        const maxDailyCount = Math.max(...dailyRates.map(d => d.count), 1);
-
-        const points = dailyRates.map((item, index) => {
-          const x = paddingLeftRight + index * stepX;
-          const y = paddingTopBottom + chartHeight * (1 - item.count / maxDailyCount);
-          return { x, y, date: item.date, count: item.count };
+        const labels = dailyRates.map(d => {
+          const parts = d.date.split('-');
+          return parts.length > 2 ? `${parts[1]}/${parts[2]}` : d.date;
         });
+        const data = dailyRates.map(d => d.count);
 
-        // Bezier interpolation
-        let d = `M ${points[0].x} ${points[0].y}`;
-        for (let i = 0; i < points.length - 1; i++) {
-          const curr = points[i];
-          const next = points[i + 1];
-          const cpX1 = curr.x + stepX / 3;
-          const cpY1 = curr.y;
-          const cpX2 = next.x - stepX / 3;
-          const cpY2 = next.y;
-          d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
+        const ctx = document.getElementById('trend-chart').getContext('2d');
+        if (trendChartInstance) {
+          trendChartInstance.destroy();
         }
 
-        const dFill = `${d} L ${points[points.length - 1].x} ${height - paddingTopBottom} L ${points[0].x} ${height - paddingTopBottom} Z`;
-
-        const pathFill = document.createElementNS(svgNS, "path");
-        pathFill.setAttribute("d", dFill);
-        pathFill.setAttribute("fill", "url(#chart-glow)");
-        svg.appendChild(pathFill);
-
-        const pathLine = document.createElementNS(svgNS, "path");
-        pathLine.setAttribute("d", d);
-        pathLine.setAttribute("fill", "none");
-        pathLine.setAttribute("stroke", "#4f46e5");
-        pathLine.setAttribute("stroke-width", "4");
-        pathLine.setAttribute("stroke-linecap", "round");
-        pathLine.setAttribute("stroke-linejoin", "round");
-
-        pathLine.style.strokeDasharray = "1200";
-        pathLine.style.strokeDashoffset = "1200";
-        pathLine.style.animation = "draw-chart-path 1.5s forwards ease-in-out";
-        svg.appendChild(pathLine);
-
-        points.forEach((pt) => {
-          const dateParts = pt.date.split('-');
-          const shortLabel = dateParts.length > 2 ? `${dateParts[1]}/${dateParts[2]}` : pt.date;
-
-          const gridLine = document.createElementNS(svgNS, "line");
-          gridLine.setAttribute("x1", pt.x);
-          gridLine.setAttribute("y1", paddingTopBottom);
-          gridLine.setAttribute("x2", pt.x);
-          gridLine.setAttribute("y2", height - paddingTopBottom);
-          gridLine.setAttribute("stroke", "#e2e8f0");
-          gridLine.setAttribute("stroke-dasharray", "4 4");
-          svg.appendChild(gridLine);
-
-          const dotGroup = document.createElementNS(svgNS, "g");
-          dotGroup.style.cursor = "pointer";
-
-          const dotOuter = document.createElementNS(svgNS, "circle");
-          dotOuter.setAttribute("cx", pt.x);
-          dotOuter.setAttribute("cy", pt.y);
-          dotOuter.setAttribute("r", "8");
-          dotOuter.setAttribute("fill", "#4f46e5");
-          dotOuter.setAttribute("opacity", "0");
-          dotOuter.style.transition = "all 0.25s ease";
-          dotGroup.appendChild(dotOuter);
-
-          const dotInner = document.createElementNS(svgNS, "circle");
-          dotInner.setAttribute("cx", pt.x);
-          dotInner.setAttribute("cy", pt.y);
-          dotInner.setAttribute("r", "4.5");
-          dotInner.setAttribute("fill", "#ffffff");
-          dotInner.setAttribute("stroke", "#4f46e5");
-          dotInner.setAttribute("stroke-width", "2.5");
-          dotGroup.appendChild(dotInner);
-
-          const textLabel = document.createElementNS(svgNS, "text");
-          textLabel.setAttribute("x", pt.x);
-          textLabel.setAttribute("y", height - 6);
-          textLabel.setAttribute("text-anchor", "middle");
-          textLabel.setAttribute("fill", "#64748b");
-          textLabel.setAttribute("font-size", "11");
-          textLabel.setAttribute("font-weight", "600");
-          textLabel.textContent = shortLabel;
-          svg.appendChild(textLabel);
-
-          const rateText = document.createElementNS(svgNS, "text");
-          rateText.setAttribute("x", pt.x);
-          rateText.setAttribute("y", pt.y - 14);
-          rateText.setAttribute("text-anchor", "middle");
-          rateText.setAttribute("fill", "#4f46e5");
-          rateText.setAttribute("font-weight", "800");
-          rateText.setAttribute("font-size", "12");
-          rateText.style.opacity = "0";
-          rateText.style.transition = "all 0.25s ease";
-          rateText.textContent = `${pt.count}건 완료`;
-          dotGroup.appendChild(rateText);
-
-          dotGroup.addEventListener("mouseenter", () => {
-            dotOuter.setAttribute("r", "12");
-            dotOuter.setAttribute("opacity", "0.15");
-            rateText.style.opacity = "1";
-            rateText.setAttribute("y", pt.y - 17);
-          });
-
-          dotGroup.addEventListener("mouseleave", () => {
-            dotOuter.setAttribute("r", "8");
-            dotOuter.setAttribute("opacity", "0");
-            rateText.style.opacity = "0";
-            rateText.setAttribute("y", pt.y - 14);
-          });
-
-          svg.appendChild(dotGroup);
+        trendChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '일일 예약 완료 건수',
+              data: data,
+              borderColor: '#4f46e5',
+              borderWidth: 3.5,
+              pointBackgroundColor: '#ffffff',
+              pointBorderColor: '#4f46e5',
+              pointBorderWidth: 2.5,
+              pointRadius: 5.5,
+              pointHoverRadius: 8,
+              fill: true,
+              backgroundColor: function(context) {
+                const chart = context.chart;
+                const {ctx: canvasCtx, chartArea} = chart;
+                if (!chartArea) return null;
+                const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                gradient.addColorStop(0, 'rgba(79, 70, 229, 0.15)');
+                gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+                return gradient;
+              },
+              tension: 0.35
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#1e293b',
+                padding: 10,
+                titleFont: { size: 12, family: 'Inter' },
+                bodyFont: { size: 12, family: 'Inter' },
+                callbacks: {
+                  label: function(context) {
+                    return `예약 완료: ${context.parsed.y}건`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#64748b', font: { size: 10, family: 'Inter', weight: 500 } }
+              },
+              y: {
+                border: { dash: [4, 4] },
+                grid: { color: '#e2e8f0' },
+                ticks: { color: '#64748b', font: { size: 10, family: 'Inter' } }
+              }
+            }
+          }
         });
-
-        trendBarWrapper.appendChild(svg);
       } else {
         trendChartArea.style.display = 'none';
         noData3.style.display = 'block';
@@ -1538,44 +1351,56 @@
         hourlyTotals[time] = unavailableCount;
       });
 
-      const maxTotal = Math.max(...Object.values(hourlyTotals), 1);
+      const labels = uniqueTimes;
+      const data = uniqueTimes.map(time => hourlyTotals[time]);
 
-      // Left Y-Axis Scale (Total Bookings)
-      const yMaxLeft = Math.ceil(maxTotal) || 1;
-      const stepLeft = Math.ceil(yMaxLeft / 4) || 1;
-      const yTicksLeft = [stepLeft * 4, stepLeft * 3, stepLeft * 2, stepLeft * 1, 0];
-      const yMaxLeftScale = yTicksLeft[0];
-
-      // Draw Left Y-Axis Labels
-      const yAxisContainer = document.getElementById('chart-y-axis');
-      if (yAxisContainer) {
-        yAxisContainer.innerHTML = yTicksLeft.map(val => `<div>${val}건</div>`).join('');
+      const ctx = document.getElementById('hourly-chart').getContext('2d');
+      if (hourlyChartInstance) {
+        hourlyChartInstance.destroy();
       }
 
-      // Draw Background Grid Lines
-      const gridContainer = document.getElementById('chart-grid-lines');
-      if (gridContainer) {
-        gridContainer.innerHTML = yTicksLeft.map((val, idx) => {
-          if (idx === yTicksLeft.length - 1) return '<div style="height: 0;"></div>';
-          return '<div style="border-top: 1px dashed #e2e8f0; width: 100%; height: 0;"></div>';
-        }).join('');
-      }
-
-      timelineBarWrapper.innerHTML = '';
-
-      uniqueTimes.forEach(time => {
-        const total = hourlyTotals[time];
-        const heightPercent = Math.round((total / yMaxLeftScale) * 100);
-
-        const col = document.createElement('div');
-        col.classList.add('chart-bar-column');
-        col.innerHTML = `
-          <div class="chart-bar-fill" data-height="${heightPercent || 6}%" style="height: 0%; background: #e2e8f0;">
-            <div class="chart-bar-value">${total}건</div>
-          </div>
-          <div class="chart-bar-label">${time}</div>
-        `;
-        timelineBarWrapper.appendChild(col);
+      hourlyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '예약 완료 건수',
+            data: data,
+            backgroundColor: 'rgba(79, 70, 229, 0.75)',
+            hoverBackgroundColor: 'rgba(79, 70, 229, 0.95)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              padding: 10,
+              titleFont: { size: 12, family: 'Inter' },
+              bodyFont: { size: 12, family: 'Inter' },
+              callbacks: {
+                label: function(context) {
+                  return `예약 완료: ${context.parsed.y}건`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 10, family: 'Inter', weight: 500 } }
+            },
+            y: {
+              border: { dash: [4, 4] },
+              grid: { color: '#e2e8f0' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'Inter' }, stepSize: 1 }
+            }
+          }
+        }
       });
     }
 
@@ -1609,47 +1434,54 @@
         return parseFloat((count / daysCount).toFixed(1));
       });
 
-      const maxVal = Math.max(...dayAverages, 1);
-      const yMax = Math.ceil(maxVal) || 1;
-      const stepVal = parseFloat((yMax / 4).toFixed(1));
-      const yTicks = [yMax, parseFloat((yMax - stepVal).toFixed(1)), parseFloat((yMax - stepVal * 2).toFixed(1)), parseFloat((yMax - stepVal * 3).toFixed(1)), 0];
-
-      const yAxisContainer = document.getElementById('dow-chart-y-axis');
-      if (yAxisContainer) {
-        yAxisContainer.innerHTML = yTicks.map(val => `<div>${val}건</div>`).join('');
+      const ctx = document.getElementById('dow-chart').getContext('2d');
+      if (dowChartInstance) {
+        dowChartInstance.destroy();
       }
 
-      const gridContainer = document.getElementById('dow-chart-grid-lines');
-      if (gridContainer) {
-        gridContainer.innerHTML = yTicks.map((val, idx) => {
-          if (idx === yTicks.length - 1) return '<div style="height: 0;"></div>';
-          return '<div style="border-top: 1px dashed #e2e8f0; width: 100%; height: 0;"></div>';
-        }).join('');
-      }
-
-      const dowBarWrapper = document.getElementById('dow-bar-wrapper');
-      if (dowBarWrapper) {
-        dowBarWrapper.innerHTML = '';
-        dayNames.forEach((name, index) => {
-          const avg = dayAverages[index];
-          const heightPercent = Math.round((avg / yMax) * 100);
-
-          const col = document.createElement('div');
-          col.classList.add('chart-bar-column');
-          col.innerHTML = `
-            <div class="chart-bar-fill" data-height="${heightPercent || 6}%" style="height: 0%">
-              <div class="chart-bar-value">${avg}건</div>
-            </div>
-            <div class="chart-bar-label">${name}요일</div>
-          `;
-          dowBarWrapper.appendChild(col);
-        });
-      }
-
-      const noData4 = document.getElementById('no-data-msg-4');
-      const dowChartArea = document.getElementById('dow-chart-area');
-      if (noData4) noData4.style.display = 'none';
-      if (dowChartArea) dowChartArea.style.display = 'flex';
+      dowChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dayNames.map(name => `${name}요일`),
+          datasets: [{
+            label: '일평균 예약 완료 건수',
+            data: dayAverages,
+            backgroundColor: 'rgba(13, 148, 136, 0.75)',
+            hoverBackgroundColor: 'rgba(13, 148, 136, 0.95)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              padding: 10,
+              titleFont: { size: 12, family: 'Inter' },
+              bodyFont: { size: 12, family: 'Inter' },
+              callbacks: {
+                label: function(context) {
+                  return `일평균 예약: ${context.parsed.y}건`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 10, family: 'Inter', weight: 500 } }
+            },
+            y: {
+              border: { dash: [4, 4] },
+              grid: { color: '#e2e8f0' },
+              ticks: { color: '#64748b', font: { size: 10, family: 'Inter' } }
+            }
+          }
+        }
+      });
     }
 
     // Bind change event to studio filter select
