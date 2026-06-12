@@ -9,6 +9,18 @@ if (!urlInput) {
   process.exit(1);
 }
 
+// Validate URL format and ensure it targets naver.com
+try {
+  const parsedUrl = new URL(urlInput);
+  if (!parsedUrl.hostname.endsWith('naver.com')) {
+    console.error('Error: Invalid URL. Only Naver domain (naver.com) is supported.');
+    process.exit(1);
+  }
+} catch (e) {
+  console.error('Error: Invalid URL format. Please provide a valid HTTP/HTTPS URL.');
+  process.exit(1);
+}
+
 async function main() {
   const browser = await puppeteer.launch({
     headless: true,

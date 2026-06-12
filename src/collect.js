@@ -76,74 +76,81 @@ async function fetchReservations(page, studio, date) {
       url = `${baseUrl}/items/${studio.resourceId}?startDate=${date}`;
     }
   }
-  let scheduleData = null;
 
-  const responseHandler = async (response) => {
-    const resUrl = response.url();
-    if (resUrl.includes('opName=hourlySchedule') && !scheduleData) {
-      try {
-        scheduleData = await response.json();
-      } catch (e) {
-        // Ignore parse errors
+  const maxRetries = 3;
+  for (let retryCount = 1; retryCount <= maxRetries; retryCount++) {
+    let scheduleData = null;
+
+    const responseHandler = async (response) => {
+      const resUrl = response.url();
+      if (resUrl.includes('opName=hourlySchedule') && !scheduleData) {
+        try {
+          scheduleData = await response.json();
+        } catch (e) {
+          // Ignore parse errors
+        }
       }
-    }
-  };
-
-  page.on('response', responseHandler);
-
-  try {
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
-    
-    // Wait up to 5 seconds for API response data
-    for (let attempt = 0; attempt < 25; attempt++) {
-      if (scheduleData) break;
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-  } catch (error) {
-    console.error(`[ERROR] ${studio.name} (resource:${studio.resourceId}, date:${date}) load failed:`, error.message);
-  }
-
-  page.off('response', responseHandler);
-
-  if (!scheduleData || !scheduleData.data || !scheduleData.data.schedule || !scheduleData.data.schedule.bizItemSchedule) {
-    console.error(`[ERROR] ${studio.name} (resource:${studio.resourceId}, date:${date}) data collection failed`);
-    return [];
-  }
-
-  const hourly = scheduleData.data.schedule.bizItemSchedule.hourly || [];
-  const businessHoursOnly = hourly.filter(h => h.isUnitBusinessDay && h.unitStartTime && h.unitStartTime.startsWith(date));
-
-  const results = businessHoursOnly.map(h => {
-    let timeStr = 'unknown';
-    if (h.unitStartTime) {
-      const parts = h.unitStartTime.split(' ');
-      if (parts.length > 1) {
-        timeStr = parts[1].substring(0, 5);
-      }
-    }
-
-    const isAvailable = h.unitBookingCount < h.unitStock;
-
-
-    let slotDate = date;
-    if (h.unitStartTime) {
-      const parts = h.unitStartTime.split(' ');
-      if (parts.length > 0) {
-        slotDate = parts[0];
-      }
-    }
-
-    return {
-      studioName: studio.name,
-      resourceId: studio.resourceId,
-      date: slotDate,
-      time: timeStr,
-      status: isAvailable ? 'AVAILABLE' : 'UNAVAILABLE'
     };
 
-  });
+    page.on('response', responseHandler);
 
-  return results;
+    try {
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 });
+      
+      // Wait up to 5 seconds for API response data
+      for (let attempt = 0; attempt < 25; attempt++) {
+        if (scheduleData) break;
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    } catch (error) {
+      console.error(`[WARN] ${studio.name} (resource:${studio.resourceId}, date:${date}) load attempt ${retryCount} failed:`, error.message);
+    }
+
+    page.off('response', responseHandler);
+
+    if (scheduleData && scheduleData.data && scheduleData.data.schedule && scheduleData.data.schedule.bizItemSchedule) {
+      const hourly = scheduleData.data.schedule.bizItemSchedule.hourly || [];
+      const businessHoursOnly = hourly.filter(h => h.isUnitBusinessDay && h.unitStartTime && h.unitStartTime.startsWith(date));
+
+      const results = businessHoursOnly.map(h => {
+        let timeStr = 'unknown';
+        if (h.unitStartTime) {
+          const parts = h.unitStartTime.split(' ');
+          if (parts.length > 1) {
+            timeStr = parts[1].substring(0, 5);
+          }
+        }
+
+        const isAvailable = h.unitBookingCount < h.unitStock;
+
+        let slotDate = date;
+        if (h.unitStartTime) {
+          const parts = h.unitStartTime.split(' ');
+          if (parts.length > 0) {
+            slotDate = parts[0];
+          }
+        }
+
+        return {
+          studioName: studio.name,
+          resourceId: studio.resourceId,
+          date: slotDate,
+          time: timeStr,
+          status: isAvailable ? 'AVAILABLE' : 'UNAVAILABLE'
+        };
+      });
+
+      return results;
+    }
+
+    if (retryCount < maxRetries) {
+      console.log(`[RETRY] ${studio.name} (resource:${studio.resourceId}, date:${date}) retrying... (${retryCount}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+
+  console.error(`[ERROR] ${studio.name} (resource:${studio.resourceId}, date:${date}) data collection failed after ${maxRetries} attempts`);
+  return [];
 }
 
 // Main execution function
