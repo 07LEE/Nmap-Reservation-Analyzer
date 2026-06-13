@@ -150,33 +150,66 @@ async function main() {
 
   console.log(`Analyzing booking page to extract studio name: ${finalBookingUrl}`);
   let studioName = placeStudioName || 'Unknown Studio';
+  let detectedResourceIds = [];
 
-  // Only crawl title/selectors from booking page if placeStudioName was not fetched
-  if (!placeStudioName) {
+  // Open page if studio name needs to be fetched or if resourceId is missing and needs auto-detection
+  if (!placeStudioName || !resourceId) {
     try {
       await page.goto(finalBookingUrl, { waitUntil: 'networkidle2', timeout: 20000 });
       
-      // First Priority: extract studio name from the browser window title (100% reliable)
-      const pageTitle = await page.title();
-      if (pageTitle && pageTitle.includes('::')) {
-        studioName = pageTitle.split('::')[1].trim();
-      } else {
-        // Second Priority fallback: query selectors
-        studioName = await page.evaluate(() => {
-          const el = document.querySelector('.top_title, .biz_name, .header_title, h2, h3');
-          return el ? el.innerText.trim() : null;
-        });
-        if (!studioName) {
-          studioName = pageTitle || 'Unknown Studio';
+      // Fetch studio name if not already extracted
+      if (!placeStudioName) {
+        const pageTitle = await page.title();
+        if (pageTitle && pageTitle.includes('::')) {
+          studioName = pageTitle.split('::')[1].trim();
+        } else {
+          studioName = await page.evaluate(() => {
+            const el = document.querySelector('.top_title, .biz_name, .header_title, h2, h3');
+            return el ? el.innerText.trim() : null;
+          });
+          if (!studioName) {
+            studioName = pageTitle || 'Unknown Studio';
+          }
         }
       }
+
+      // Fetch resource IDs if not provided
+      if (!resourceId) {
+        console.log(`[INFO] No resource ID found, running auto-detection...`);
+        detectedResourceIds = await page.evaluate(() => {
+          const state = window.__APOLLO_STATE__ || window.__PRELOADED_STATE__ || window.__NEXT_DATA__ || {};
+          const ids = new Set();
+          const keys = Object.keys(state);
+          keys.forEach(key => {
+            if (key.startsWith('BizItem:')) {
+              const id = key.split(':')[1].split('_')[0];
+              if (/^[0-9]+$/.test(id)) {
+                ids.add(id);
+              }
+            }
+          });
+          return Array.from(ids);
+        });
+        console.log(`[DONE] Detected resource IDs: ${detectedResourceIds.join(', ')}`);
+      } else {
+        detectedResourceIds = [resourceId];
+      }
     } catch (e) {
-      console.error('Warning: Failed to fetch studio name from web page. Using fallback.');
+      console.error('Warning: Failed to fetch studio metadata from web page. Using fallback.');
+      if (resourceId) {
+        detectedResourceIds = [resourceId];
+      }
     } finally {
       await browser.close();
     }
   } else {
     await browser.close();
+    detectedResourceIds = [resourceId];
+  }
+
+  if (detectedResourceIds.length === 0) {
+    console.error(`[ERROR] Failed to auto-extract resource ID for ${studioName}. Please set resourceId manually in studios.json.`);
+    process.exit(1);
   }
 
   // Load existing list
@@ -190,29 +223,41 @@ async function main() {
     }
   }
 
-  // Check duplicates
-  const isDuplicate = studios.some(s => s.bizId === bizId && s.resourceId === resourceId);
-  if (isDuplicate) {
-    console.log(`[INFO] Studio already exists in list (bizId:${bizId}, resourceId:${resourceId}). No changes made.`);
-    process.exit(0);
+  let addedCount = 0;
+  for (const resId of detectedResourceIds) {
+    // Check duplicates
+    const isDuplicate = studios.some(s => s.bizId === bizId && s.resourceId === resId);
+    if (isDuplicate) {
+      console.log(`[INFO] Studio already exists in list (bizId:${bizId}, resourceId:${resId}). Skipping.`);
+      continue;
+    }
+
+    const nameSuffix = detectedResourceIds.length > 1 ? ` - ${resId}` : '';
+    const finalStudioName = `${studioName}${nameSuffix}`;
+
+    // Create new entry
+    const newStudio = {
+      name: finalStudioName,
+      bizId: bizId,
+      resourceId: resId,
+      url: `https://m.booking.naver.com/booking/10/bizes/${bizId}/items/${resId}`
+    };
+
+    studios.push(newStudio);
+    addedCount++;
+
+    console.log(`\n[SUCCESS] New studio successfully registered!`);
+    console.log(`Name: ${newStudio.name}`);
+    console.log(`Business ID (bizId): ${newStudio.bizId}`);
+    console.log(`Resource ID (resourceId): ${newStudio.resourceId}`);
+    console.log(`URL: ${newStudio.url}`);
   }
 
-  // Create new entry
-  const newStudio = {
-    name: studioName,
-    bizId: bizId,
-    resourceId: resourceId || "",
-    url: finalBookingUrl.split('?')[0]
-  };
-
-  studios.push(newStudio);
-  fs.writeFileSync(studiosPath, JSON.stringify(studios, null, 2), 'utf-8');
-
-  console.log(`\n[SUCCESS] New studio successfully registered!`);
-  console.log(`Name: ${newStudio.name}`);
-  console.log(`Business ID (bizId): ${newStudio.bizId}`);
-  console.log(`Resource ID (resourceId): ${newStudio.resourceId}`);
-  console.log(`URL: ${newStudio.url}`);
+  if (addedCount > 0) {
+    fs.writeFileSync(studiosPath, JSON.stringify(studios, null, 2), 'utf-8');
+  } else {
+    console.log(`\n[INFO] No new studios registered (all detected resources were duplicates).`);
+  }
 }
 
 main().catch(console.error);
