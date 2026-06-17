@@ -633,6 +633,31 @@
       opacity: 1;
     }
 
+    /* Global Studio Filter styling */
+    .global-studio-filter {
+      position: absolute;
+      top: 25px;
+      right: 200px;
+      z-index: 150;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      background: #ffffff;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+    }
+
+    .global-studio-filter:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
   </style>
 </head>
 
@@ -640,6 +665,10 @@
 
   <div class="deck-viewport">
     <div class="deck-container">
+      <!-- Global Studio Filter -->
+      <select id="studio-filter" class="global-studio-filter" style="display: none;">
+        <option value="all">모든 매장</option>
+      </select>
       <div class="wheel-tip">마우스 휠 또는 키보드 방향키로 슬라이드 전환</div>
 
       <div class="slides-wrapper">
@@ -719,10 +748,6 @@
               </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-              <select id="studio-filter" class="filter-select"
-                style="display: none; font-family: inherit; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-main); outline: none; cursor: pointer;">
-                <option value="all">모든 매장</option>
-              </select>
               <div id="hourly-filter-container" style="display: none;" class="filter-chip-container">
                 <button class="filter-chip active" data-filter="all">전체</button>
                 <button class="filter-chip" data-filter="weekday">주중</button>
@@ -885,6 +910,16 @@
       currentSlide = index;
       updateControls();
 
+      // Control global filter visibility (only display when slide index > 0 and master data exists)
+      const filterSelect = document.getElementById('studio-filter');
+      if (filterSelect) {
+        if (currentSlide > 0 && currentMasterData && currentMasterData.length > 0) {
+          filterSelect.style.display = 'block';
+        } else {
+          filterSelect.style.display = 'none';
+        }
+      }
+
       // Trigger animations on active slide entry
       if (currentSlide === 1) {
         triggerLeaderboardAnimation();
@@ -917,6 +952,9 @@
 
     // Keyboard Arrow Navigation
     document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
         if (currentSlide < slides.length - 1) {
           goToSlide(currentSlide + 1);
@@ -933,6 +971,9 @@
     // Mouse Wheel Navigation
     let lastWheelTime = Date.now();
     document.addEventListener('wheel', (e) => {
+      if (e.target.tagName === 'SELECT' || e.target.closest('#studio-filter')) {
+        return;
+      }
       const now = Date.now();
       if (now - lastWheelTime < 1000) return;
 
@@ -1146,18 +1187,52 @@
       uploadZone.querySelector('.upload-subtext').textContent = `병합 분석 완료 (${fileContents.length}개 파일)`;
 
       // 2. Booking Results by Studio (Daily average reservation rates)
+      currentMasterData = masterData;
+      noData2.style.display = 'none';
+      timelineChartArea.style.display = 'flex';
+      const dowChartArea = document.getElementById('dow-chart-area');
+      if (dowChartArea) dowChartArea.style.display = 'flex';
+      hourlyFilterContainer.style.display = 'block';
+
+      const studioFilterSelect = document.getElementById('studio-filter');
+      if (studioFilterSelect) {
+        if (currentSlide > 0) {
+          studioFilterSelect.style.display = 'block';
+        }
+        studioFilterSelect.innerHTML = '<option value="all">모든 매장</option>';
+        studiosSet.forEach(studioName => {
+          const opt = document.createElement('option');
+          opt.value = studioName;
+          opt.textContent = studioName;
+          studioFilterSelect.appendChild(opt);
+        });
+      }
+
+      renderRankingList();
+      renderHourlyChart();
+      renderDayOfWeekChart();
+      renderTrendChart();
+      renderHeatmap();
+    }
+
+    // Modular Renderer for Slide 2 (Ranking List)
+    function renderRankingList() {
+      const rankingList = document.getElementById('ranking-list');
+      if (!rankingList || !currentMasterData || currentMasterData.length === 0) return;
+
+      const studioFilterSelect = document.getElementById('studio-filter');
+      const studioFilter = studioFilterSelect ? studioFilterSelect.value : 'all';
+
+      const studiosSet = new Set(currentMasterData.map(d => d.studioName));
       const studioStats = {};
+
       studiosSet.forEach(name => {
-        const studioRows = masterData.filter(d => d.studioName === name);
+        const studioRows = currentMasterData.filter(d => d.studioName === name);
         const unavailableCount = studioRows.filter(d => d.status === 'UNAVAILABLE').length;
         const total = studioRows.length;
         const rate = total > 0 ? Math.round((unavailableCount / total) * 100) : 0;
-
-        // Extract unique active collection days per studio
         const studioDates = new Set(studioRows.map(d => d.date));
         const activeDays = studioDates.size || 1;
-
-        // Compute daily average reservation counts and collected slots (rounded to 1 decimal place)
         const dailyAverage = parseFloat((unavailableCount / activeDays).toFixed(1));
         const dailyTotalAverage = parseFloat((total / activeDays).toFixed(1));
 
@@ -1172,7 +1247,6 @@
         };
       });
 
-      // Sort studios by daily average reservation counts in descending order
       const sortedStudios = Object.values(studioStats).sort((a, b) => {
         if (b.dailyAverage !== a.dailyAverage) {
           return b.dailyAverage - a.dailyAverage;
@@ -1180,13 +1254,16 @@
         return b.rate - a.rate;
       });
 
-      // Clear ranking list container before rendering
       rankingList.innerHTML = '';
       rankingList.style.display = 'flex';
 
       sortedStudios.forEach((item, index) => {
+        const isMatched = (studioFilter === 'all' || item.name === studioFilter);
+        const opacityStyle = isMatched ? '' : 'opacity: 0.3; filter: grayscale(40%);';
+        const highlightStyle = (studioFilter !== 'all' && item.name === studioFilter) ? 'border-color: var(--primary); background: #f8fafc; transform: scale(1.02); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.05);' : '';
         const row = document.createElement('div');
         row.classList.add('ranking-row');
+        row.style.cssText = `${opacityStyle} ${highlightStyle}`;
         const fillPercent = item.dailyTotalAverage > 0 ? Math.round((item.dailyAverage / item.dailyTotalAverage) * 100) : 0;
         row.innerHTML = `
           <div class="ranking-num">${index + 1}</div>
@@ -1204,38 +1281,32 @@
         rankingList.appendChild(row);
       });
 
-      // 3. Hourly Peak Time distributions (Delegated to modular filter-based renderer)
-      currentMasterData = masterData;
-      noData2.style.display = 'none';
-      timelineChartArea.style.display = 'flex';
-      const dowChartArea = document.getElementById('dow-chart-area');
-      if (dowChartArea) dowChartArea.style.display = 'flex';
-      hourlyFilterContainer.style.display = 'block';
+      triggerLeaderboardAnimation();
+    }
+
+    // Modular Renderer for Slide 4 (Trend Chart)
+    function renderTrendChart() {
+      const noData3 = document.getElementById('no-data-msg-3');
+      const trendChartArea = document.getElementById('trend-chart-area');
+      if (!currentMasterData || currentMasterData.length === 0) return;
 
       const studioFilterSelect = document.getElementById('studio-filter');
-      if (studioFilterSelect) {
-        studioFilterSelect.style.display = 'block';
-        studioFilterSelect.innerHTML = '<option value="all">모든 매장</option>';
-        studiosSet.forEach(studioName => {
-          const opt = document.createElement('option');
-          opt.value = studioName;
-          opt.textContent = studioName;
-          studioFilterSelect.appendChild(opt);
-        });
-      }
+      const studioFilter = studioFilterSelect ? studioFilterSelect.value : 'all';
 
-      renderHourlyChart();
-      renderDayOfWeekChart();
-      renderHeatmap();
+      const filteredData = currentMasterData.filter(d => {
+        if (studioFilter !== 'all' && d.studioName !== studioFilter) return false;
+        return true;
+      });
 
-      // 4. Time Series Daily Booking Rates (Chart.js Line chart)
+      const datesSet = Array.from(new Set(filteredData.map(d => d.date))).sort();
+
       if (datesSet.length >= 1) {
         noData3.style.display = 'none';
         trendChartArea.style.display = 'flex';
 
         const dailyRates = [];
         datesSet.forEach(date => {
-          const dateRows = masterData.filter(d => d.date === date);
+          const dateRows = filteredData.filter(d => d.date === date);
           const unavailableCount = dateRows.filter(d => d.status === 'UNAVAILABLE').length;
           dailyRates.push({ date: date, count: unavailableCount });
         });
@@ -1481,8 +1552,10 @@
     const studioFilterSelect = document.getElementById('studio-filter');
     if (studioFilterSelect) {
       studioFilterSelect.addEventListener('change', () => {
+        renderRankingList();
         renderHourlyChart();
         renderDayOfWeekChart();
+        renderTrendChart();
         renderHeatmap();
       });
     }
