@@ -1,5 +1,7 @@
 # Nmap Reservation Analyzer
 
+[한국어 설명서](README.ko.md)
+
 A local data collection and analysis pipeline for Naver Map reservation systems.
 It uses headless browser automation to scrape time-slot availability data and a
 browser-based dashboard to visualize the results.
@@ -59,6 +61,20 @@ Configure `config/studios.json` with target studio entries. Each entry requires
 a `bizId`. If `resourceId` is omitted, the collector attempts auto-detection via
 Apollo state inspection.
 
+## Adding a New Studio
+
+An automated registration utility is provided to add new target studios. Run the command with a Naver Place URL or Naver Booking URL as an argument to automatically register it in `config/studios.json`.
+
+```bash
+npm run add "<Naver Place or Booking URL>"
+```
+
+Example:
+
+```bash
+npm run add "https://m.place.naver.com/place/12345678"
+```
+
 ## Usage
 
 Collect reservation data:
@@ -69,27 +85,27 @@ npm start
 
 Output is written to `data/reservations_YYYYMMDD.csv`.
 
-Serve the dashboard locally:
+Open the dashboard by double-clicking `dashboard/report.html` in a file browser, or opening it directly in a web browser.
+
+Alternatively, serve it via a local HTTP server:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/dashboard/report.html` in a browser. Drop one or more
-CSV files onto the upload zone to load data.
+And open `http://localhost:8000/dashboard/report.html` in a browser. Drop one or more CSV files onto the upload zone to load data.
 
 ## Cron Automation
 
 To run collection on a schedule, add an entry to crontab. Example for daily
 execution at 08:00 KST:
 
-```
+```text
 0 23 * * * cd /path/to/navermap && npm start >> data/cron.log 2>&1
 ```
 
 ## Notes
 
 - The dashboard runs entirely client-side. No data is transmitted externally.
-- The `file://` protocol triggers browser security restrictions. Always use a
-  local HTTP server.
+- Visualizing data via local drag-and-drop works normally under the `file://` protocol.
 - Multiple CSV files can be loaded simultaneously for multi-date analysis.
